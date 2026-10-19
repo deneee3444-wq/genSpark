@@ -561,46 +561,51 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         for attempt in range(1, 11):
             update_state(attempt=attempt, status=f"CAPTCHA Çözülüyor ({attempt}/10)...")
             add_log(f"\n[*] 4/7 CAPTCHA Denemesi ({attempt}/10)...")
-            get_cap_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/captchaControlChallengeCode/GetChallenge?tx={tx}&p={policy}&challengeType=Visual&_={int(time.time() * 1000)}"
-            r_cap = session.get(get_cap_url, headers=b2c_headers)
-            cap_data = r_cap.json()
-            ch_id = cap_data.get("challengeId")
-            ch_str = cap_data.get("challengeString", "")
-            az_reg = cap_data.get("azureregion", "")
-            b64_str = ch_str.split(",", 1)[1] if "," in ch_str else ch_str
-            image_bytes = base64.b64decode(b64_str)
-
-            # Arayüz için Base64 kaydet
-            b64_img = "data:image/jpeg;base64," + base64.b64encode(image_bytes).decode("ascii")
-            update_state(captcha_b64=b64_img)
-
-            # Yerel dizine captcha dosyasını yaz
             try:
-                cap_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "captcha_challenge.jpg")
-                with open(cap_file, "wb") as f:
-                    f.write(image_bytes)
-            except Exception:
-                pass
+                get_cap_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/captchaControlChallengeCode/GetChallenge?tx={tx}&p={policy}&challengeType=Visual&_={int(time.time() * 1000)}"
+                r_cap = session.get(get_cap_url, headers=b2c_headers, timeout=15)
+                cap_data = r_cap.json()
+                ch_id = cap_data.get("challengeId")
+                ch_str = cap_data.get("challengeString", "")
+                az_reg = cap_data.get("azureregion", "")
+                b64_str = ch_str.split(",", 1)[1] if "," in ch_str else ch_str
+                image_bytes = base64.b64decode(b64_str)
 
-            captcha_text = solver.solve(image_bytes)
-            update_state(captcha_text=captcha_text)
+                # Arayüz için Base64 kaydet
+                b64_img = "data:image/jpeg;base64," + base64.b64encode(image_bytes).decode("ascii")
+                update_state(captcha_b64=b64_img)
 
-            ver_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/captchaControlChallengeCode/VerifyChallenge?tx={tx}&p={policy}"
-            ver_payload = {
-                "challengeId": ch_id,
-                "captchaEntered": captcha_text,
-                "challengeType": "Visual",
-                "azureRegion": az_reg,
-            }
-            r_ver = session.post(ver_url, headers=b2c_headers, data=ver_payload)
-            res_ver = r_ver.json()
-            if str(res_ver.get("isCaptchaSolved")).lower() == "true":
-                captcha_solved = True
-                add_log(f"[+] CAPTCHA Başarıyla Doğrulandı! ({captcha_text})")
-                break
-            else:
-                add_log("[-] CAPTCHA eşleşmedi, oturum bozulmadan yeni görsel çekiliyor...")
-                time.sleep(1)
+                # Yerel dizine captcha dosyasını yaz
+                try:
+                    cap_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "captcha_challenge.jpg")
+                    with open(cap_file, "wb") as f:
+                        f.write(image_bytes)
+                except Exception:
+                    pass
+
+                captcha_text = solver.solve(image_bytes)
+                update_state(captcha_text=captcha_text)
+
+                ver_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/captchaControlChallengeCode/VerifyChallenge?tx={tx}&p={policy}"
+                ver_payload = {
+                    "challengeId": ch_id,
+                    "captchaEntered": captcha_text,
+                    "challengeType": "Visual",
+                    "azureRegion": az_reg,
+                }
+                r_ver = session.post(ver_url, headers=b2c_headers, data=ver_payload, timeout=15)
+                res_ver = r_ver.json()
+                if str(res_ver.get("isCaptchaSolved")).lower() == "true":
+                    captcha_solved = True
+                    add_log(f"[+] CAPTCHA Başarıyla Doğrulandı! ({captcha_text})")
+                    break
+                else:
+                    add_log("[-] CAPTCHA eşleşmedi, oturum bozulmadan yeni görsel çekiliyor...")
+                    time.sleep(1)
+            except Exception as e:
+                add_log(f"[!] Deneme ({attempt}) sırasında geçici bağlantı/zaman aşımı hatası: {e}")
+                add_log("[*] Oturum korunarak bir sonraki görsel deneniyor...")
+                time.sleep(1.5)
 
         if not captcha_solved:
             raise RuntimeError("CAPTCHA 10 denemede çözülemedi.")
