@@ -178,7 +178,7 @@ class OpusCaptchaSolver:
     def __init__(self):
         self.token = None
         self.user_id = None
-        self.model_id = "07cae127-d0d0-4822-ba72-e6eeb2479e39"  # claude-opus-4-7
+        self.model_id = "claude-opus-4.7"
 
     def _ensure_authenticated(self):
         if not self.token or not self.user_id:
@@ -245,7 +245,7 @@ class OpusCaptchaSolver:
                         "prefer": "return=representation",
                         "accept": "application/vnd.pgrst.object+json",
                     },
-                    json={"user_id": self.user_id, "default_model_id": self.model_id},
+                    json={"user_id": self.user_id, "title": "Captcha"},
                     timeout=15,
                 )
                 c_data = r_conv.json()
