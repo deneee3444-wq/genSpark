@@ -830,29 +830,38 @@ def stream_genspark_chat(
         "chat_session_id": None,
     }
 
-    session.curl_options = {
-        CurlOpt.FORBID_REUSE: 1,
-        CurlOpt.FRESH_CONNECT: 1,
-    }
     ask_url = f"{GENSPARK_HOST}/api/agent/ask_proxy"
     res = session.post(ask_url, headers=headers, json=payload, stream=True, timeout=60)
 
     if res.status_code != 200:
-        err_snippet = ""
+        err_body = b""
         try:
-            err_snippet = res.text[:300].strip()
+            for chunk in res.iter_content(chunk_size=1024):
+                if chunk:
+                    err_body += chunk
+                    if len(err_body) >= 2048:
+                        break
         except Exception:
-            try:
-                err_snippet = res.content[:300].decode("utf-8", errors="replace").strip()
-            except Exception:
-                pass
-        add_log(f"[-] ask_proxy HTTP {res.status_code} hatası! Yanıt: {err_snippet}")
-        if res.status_code in [401, 403]:
-            raise GensparkSessionError(f"HTTP {res.status_code} - Sunucu yanıtı: {err_snippet or 'Genspark yetkilendirme reddedildi'}")
-        elif res.status_code == 429:
-            raise RuntimeError(f"HTTP 429 İstek Hız Sınırı: {err_snippet}")
+            pass
+
+        err_snippet = err_body.decode("utf-8", errors="replace").strip()
+        cf_ray = res.headers.get("cf-ray", "")
+        server_hdr = res.headers.get("server", "")
+        ctype = res.headers.get("content-type", "")
+
+        add_log(f"[-] ask_proxy HTTP {res.status_code}! Server: {server_hdr} | CF-Ray: {cf_ray} | Type: {ctype}")
+        if err_snippet:
+            add_log(f"[-] ask_proxy Hata Yanıtı: {err_snippet[:300]}")
         else:
-            raise RuntimeError(f"HTTP {res.status_code} Sunucu Hatası: {err_snippet}")
+            add_log("[-] ask_proxy Yanıt gövdesi boş döndü (Genspark/Cloudflare TCP sıfırladı veya boş 403 verdi).")
+
+        err_msg = err_snippet[:200] if err_snippet else f"Server={server_hdr}, CF-Ray={cf_ray}"
+        if res.status_code in [401, 403]:
+            raise GensparkSessionError(f"HTTP {res.status_code}: {err_msg}")
+        elif res.status_code == 429:
+            raise RuntimeError(f"HTTP 429 Hız Sınırı: {err_msg}")
+        else:
+            raise RuntimeError(f"HTTP {res.status_code}: {err_msg}")
 
     streamed_any = False
     for raw_line in res.iter_lines():
@@ -949,6 +958,13 @@ def login_existing_account(email: str, password: str = DEFAULT_PASSWORD) -> Opti
         if not loc:
             return None
         session.get(loc, allow_redirects=True, timeout=15)
+
+        # Genspark kullanıcı profilini ve kota durumunu yükle (oturum ısıtma)
+        try:
+            session.get(f"{GENSPARK_HOST}/api/user", timeout=10)
+            session.get(f"{GENSPARK_HOST}/api/quota/plan_usage", timeout=10)
+        except Exception:
+            pass
 
         # Kredi bakiyesini sorgula
         r_bal = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=10)
