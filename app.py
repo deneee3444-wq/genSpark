@@ -103,6 +103,35 @@ class CreditExhaustedError(Exception):
     pass
 
 
+class GensparkSessionError(Exception):
+    """Genspark web oturumu süresi dolduğunda veya yetkilendirme reddedildiğinde (HTTP 401/403) fırlatılır."""
+    pass
+
+
+def ensure_client_cookies(session: cffi_requests.Session):
+    """Genspark Cloudflare ve bot korumasını aşmak için gerekli istemci çerezlerini garantiye alır."""
+    try:
+        cookies = session.cookies.get_dict()
+        if "ai_user" not in cookies:
+            rand_id = "".join(random.choices(string.ascii_letters + string.digits + "+", k=22))
+            iso_now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            session.cookies.set("ai_user", f"{rand_id}|{iso_now}", domain=".genspark.ai")
+        if "ai_session" not in cookies:
+            rand_id = "".join(random.choices(string.ascii_letters + string.digits, k=20))
+            t1 = int(time.time() * 1000)
+            session.cookies.set("ai_session", f"{rand_id}|{t1}|{t1}", domain=".genspark.ai")
+        if "agree_terms" not in cookies:
+            session.cookies.set("agree_terms", "1", domain=".genspark.ai")
+        if "gslogin" not in cookies:
+            session.cookies.set("gslogin", "1", domain=".genspark.ai")
+        if "sidebar_expanded" not in cookies:
+            session.cookies.set("sidebar_expanded", "false", domain=".genspark.ai")
+        if "i18n_set" not in cookies:
+            session.cookies.set("i18n_set", "en-US", domain=".genspark.ai")
+    except Exception:
+        pass
+
+
 # ==============================================================================
 #  BÖLÜM 3: PIXELBUNNY CLAUDE OPUS 4.7 CAPTCHA ÇÖZÜCÜ
 # ==============================================================================
@@ -712,6 +741,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         bal_data = r_bal.json().get("data", {})
         balance = bal_data.get("balance", 100)
         session.get(f"{GENSPARK_HOST}/api/quota/plan_usage", timeout=10)
+        ensure_client_cookies(session)
 
         add_log(f"[+] 100 Kredi Başarıyla Aktifleştirildi! (Güncel Bakiye: {balance} Kredi)")
         update_state(
@@ -802,9 +832,10 @@ def stream_genspark_chat(
     ask_url = f"{GENSPARK_HOST}/api/agent/ask_proxy"
     res = session.post(ask_url, headers=headers, json=payload, stream=True, timeout=60)
 
-    if res.status_code != 200:
-        yield f"\n[HATA] ask_proxy HTTP {res.status_code}: {res.text[:200]}\n"
-        return
+    if res.status_code in [401, 403, 429]:
+        raise CreditExhaustedError(f"Genspark kredi kotası doldu veya oturum sonlandı (HTTP {res.status_code}).")
+    elif res.status_code != 200:
+        raise RuntimeError(f"Genspark ask_proxy sunucu hatası (HTTP {res.status_code})")
 
     streamed_any = False
     for raw_line in res.iter_lines():
@@ -987,25 +1018,14 @@ def index():
 @app.route("/api/balance", methods=["GET"])
 def api_balance():
     with state_lock:
-        session = active_chat.get("session")
         email = active_chat.get("email")
         balance = active_chat.get("balance", 0)
-
-    # Canlı güncel bakiyeyi sorgula
-    if session:
-        try:
-            r = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=5)
-            if r.status_code == 200:
-                balance = r.json().get("data", {}).get("balance", balance)
-                with state_lock:
-                    active_chat["balance"] = balance
-        except Exception:
-            pass
+        is_exhausted = active_chat.get("is_credit_exhausted", False)
 
     return jsonify({
         "email": email,
         "balance": balance,
-        "is_exhausted": active_chat.get("is_credit_exhausted", False),
+        "is_exhausted": is_exhausted,
     })
 
 
@@ -1054,9 +1074,23 @@ def api_chat():
                 yield f"data: {json.dumps({'delta': delta})}\n\n"
 
             # Başarıyla tamamlandı, geçmişe ekle
-            with state_lock:
-                active_chat["history"].append({"role": "user", "content": user_prompt})
-                active_chat["history"].append({"role": "assistant", "content": full_reply})
+            if full_reply.strip() and not full_reply.startswith("[HATA]"):
+                with state_lock:
+                    active_chat["history"].append({"role": "user", "content": user_prompt})
+                    active_chat["history"].append({"role": "assistant", "content": full_reply})
+
+                # Canlı bakiyeyi güncelle
+                try:
+                    r_bal = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=5)
+                    if r_bal.status_code == 200:
+                        bal = r_bal.json().get("data", {}).get("balance")
+                        if bal is not None:
+                            with state_lock:
+                                active_chat["balance"] = bal
+                                if bal <= 0:
+                                    active_chat["is_credit_exhausted"] = True
+                except Exception:
+                    pass
 
             yield "data: [DONE]\n\n"
 
