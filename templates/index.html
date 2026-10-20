@@ -1588,10 +1588,34 @@
                         <td style="font-family:'JetBrains Mono'; font-weight:600;">${acc.email}</td>
                         <td style="font-family:'JetBrains Mono';">${acc.password}</td>
                         <td style="font-family:'JetBrains Mono'; color:#a5b4fc;">${acc.format}</td>
-                        <td><button class="btn-mini" onclick="copyText('${acc.format}')">Kopyala</button></td>
+                        <td>
+                            <button class="btn-mini" onclick="copyText('${acc.format}')">Kopyala</button>
+                            <button class="btn-mini" style="background:var(--accent); color:#fff; margin-left:4px;" onclick="switchAccount('${acc.email}', '${acc.password}')">Aktif Et</button>
+                        </td>
                     </tr>
                 `).reverse().join('');
             } catch (e) {}
+        }
+
+        async function switchAccount(email, password) {
+            showToast(`Oturum değiştiriliyor: ${email}...`);
+            try {
+                const res = await fetch('/api/switch_account', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast(`✅ ${email} aktif edildi (${data.balance} Kredi)!`);
+                    updateBalanceUI();
+                    closeManagerModal();
+                } else {
+                    showToast(`❌ Giriş başarısız: ${data.message || 'Hata'}`);
+                }
+            } catch (e) {
+                showToast('Bağlantı hatası!');
+            }
         }
 
         function copyText(txt) {
