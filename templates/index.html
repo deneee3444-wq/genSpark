@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Genspark AI - Gemini 4 Argon Sohbet</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Marked.js (Markdown) & Highlight.js (Code highlighting) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #07090e;
+            --bg-surface: #0e131f;
+            --bg-card: #141c2e;
+            --bg-card-hover: #1a253c;
+            --border: #1e293b;
+            --border-focus: #3b4d6b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.2);
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --sidebar-w: 300px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Arka Plan Ambient Işık Efekti */
+        .ambient-glow {
+            position: fixed;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(7, 9, 14, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ================= SIDEBAR ================= */
+        .sidebar {
+            width: var(--sidebar-w);
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 40;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem 1.25rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .brand-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            font-weight: 600;
+        }
+
+        .sidebar-actions {
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .btn-new-chat {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .btn-new-chat:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-focus);
+            transform: translateY(-1px);
+        }
+
+        .btn-register-action {
+            width: 100%;
+            background: var(--accent-gradient);
+            border: none;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 14px var(--accent-glow);
+            transition: all 0.2s;
+        }
+
+        .btn-register-action:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-register-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Aktif Hesap Kartı */
+        .account-card {
+            margin: 0.5rem 1.25rem;
+            padding: 1rem;
+            background: rgba(20, 28, 46, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .account-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .account-email {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .credit-meter-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .credit-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .credit-progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .credit-progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding-top: 0.4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--border);
+            border-radius: 34px;
+            transition: .2s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .2s;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(16px);
+        }
+
+        /* Menü Sekmeleri */
+        .sidebar-menu {
+            flex: 1;
+            padding: 0.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            overflow-y: auto;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background: rgba(99, 102, 241, 0.12);
+            color: #a5b4fc;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+
+        /* ================= MAIN CHAT AREA ================= */
+        .chat-app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            position: relative;
+            background: var(--bg-base);
+            z-index: 10;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: 60px;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: rgba(14, 19, 31, 0.7);
+            backdrop-filter: blur(12px);
+            z-index: 20;
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-hamburger {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        .model-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .credits-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 0.4rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .btn-icon-nav {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-icon-nav:hover {
+            color: var(--text-main);
+            background: var(--bg-card-hover);
+        }
+
+        /* Mesaj Listesi */
+        .chat-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1.5rem 6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            scroll-behavior: smooth;
+        }
+
+        /* Hero Ekranı (Boş Sohbet) */
+        .chat-hero {
+            margin: auto 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 1rem;
+            padding: 2rem 1rem;
+        }
+
+        .hero-logo-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px var(--accent-glow);
+        }
+
+        .hero-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .hero-suggestions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            max-width: 600px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .suggestion-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .suggestion-card strong {
+            color: var(--text-main);
+        }
+
+        .suggestion-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-focus);
+            transform: translateY(-2px);
+        }
+
+        /* Mesaj Satırları */
+        .chat-message {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .chat-message.user .msg-avatar {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .chat-message.assistant .msg-avatar {
+            background: var(--accent-gradient);
+            color: #fff;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .msg-body-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-width: 82%;
+        }
+
+        .chat-message.user .msg-body-wrapper {
+            align-items: flex-end;
+        }
+
+        .msg-bubble {
+            padding: 0.95rem 1.25rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .chat-message.user .msg-bubble {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: #ffffff;
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+        }
+
+        .chat-message.assistant .msg-bubble {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-top-left-radius: 4px;
+        }
+
+        /* Markdown İçi Stilleri */
+        .msg-bubble p {
+            margin-bottom: 0.65rem;
+        }
+        .msg-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        .msg-bubble code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.88em;
+        }
+        .msg-bubble pre {
+            margin: 0.75rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #090d16 !important;
+            border: 1px solid var(--border);
+        }
+        .msg-bubble pre code {
+            padding: 1rem;
+            display: block;
+            background: transparent;
+            overflow-x: auto;
+        }
+        .msg-bubble ul, .msg-bubble ol {
+            margin-left: 1.25rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .cursor-indicator {
+            display: inline-block;
+            width: 7px;
+            height: 16px;
+            background-color: #a5b4fc;
+            margin-left: 3px;
+            vertical-align: middle;
+            animation: blink 0.9s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Alt Sabit Prompt Alanı */
+        .chat-bottom-dock {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.25rem;
+            background: linear-gradient(180deg, rgba(7, 9, 14, 0) 0%, rgba(7, 9, 14, 0.9) 30%, #07090e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 30;
+        }
+
+        .input-box-wrapper {
+            max-width: 900px;
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 0.6rem 0.8rem 0.6rem 1.1rem;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-box-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow), 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            max-height: 160px;
+            min-height: 24px;
+            padding: 4px 0;
+            line-height: 1.5;
+        }
+
+        .btn-send-message {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--accent-gradient);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-send-message:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .btn-send-message:disabled {
+            opacity: 0.4;
+            transform: none;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .dock-note {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* ================= MODAL / DRAWER (HESAP YÖNETİCİSİ & LOGLAR) ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            max-width: 960px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        .btn-close-modal:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .manager-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1.25rem;
+        }
+
+        .card-sub {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card-sub-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .captcha-preview-box {
+            background: #090d16;
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            gap: 8px;
+        }
+
+        .captcha-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terminal-box {
+            background: #06090e;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            height: 320px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .terminal-bar {
+            background: #0d121d;
+            padding: 0.4rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        .terminal-content {
+            flex: 1;
+            padding: 0.75rem;
+            overflow-y: auto;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Tablo */
+        .table-wrap {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-card);
+            padding: 0.7rem 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-mini {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-mini:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Floating Toast Bildirim */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-surface);
+            border: 1px solid var(--accent);
+            color: var(--text-main);
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .toast-notification.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Kredi Bitti Diyaloğu */
+        .credit-alert-modal {
+            max-width: 440px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 820px) {
+            .sidebar {
+                position: fixed;
+                top: 0; bottom: 0; left: 0;
+                transform: translateX(-100%);
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .sidebar-backdrop {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 35;
+                display: none;
+            }
+            .sidebar-backdrop.active {
+                display: block;
+            }
+            .btn-hamburger {
+                display: block;
+            }
+            .hero-suggestions {
+                grid-template-columns: 1fr;
+            }
+            .manager-grid {
+                grid-template-columns: 1fr;
+            }
+            .chat-scroll-area {
+                padding: 1rem 1rem 5.5rem;
+            }
+            .chat-bottom-dock {
+                padding: 0.75rem 1rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <!-- Mobil Karartma Perdesi -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
+    <!-- SOL KENAR ÇUBUĞU (SIDEBAR) -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-box">
+                <div class="brand-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+                </div>
+                <div>
+                    <div class="brand-title">Genspark AI</div>
+                    <div style="font-size:0.7rem; color:var(--text-dim);">Gemini 4 Argon Suite</div>
+                </div>
+            </div>
+            <span class="brand-badge">PRO</span>
+        </div>
+
+        <div class="sidebar-actions">
+            <button class="btn-new-chat" onclick="clearChat()">
+                <span>+ Yeni Sohbet</span>
+                <span style="font-size:0.7rem; color:var(--text-dim); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px;">Ctrl+K</span>
+            </button>
+            <button class="btn-register-action" id="btnRegisterSidebar" onclick="startNewAccount()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+                <span>Yeni Hesap Aç (100 Kredi)</span>
+            </button>
+        </div>
+
+        <!-- Aktif Hesap & Kredi Durumu Kartı -->
+        <div class="account-card">
+            <div class="account-card-header">
+                <span>Aktif Oturum</span>
+                <span id="accountStatusIndicator" style="color:var(--warning);">Bekleniyor</span>
+            </div>
+            <div class="account-email" id="sidebarEmail">Hesap Yok (Açın)</div>
+            
+            <div class="credit-meter-box">
+                <div class="credit-labels">
+                    <span style="color:var(--text-dim);">Kullanım Kredisi</span>
+                    <span id="sidebarCreditLabel" style="color:#a5b4fc;">0 / 100</span>
+                </div>
+                <div class="credit-progress-bar">
+                    <div class="credit-progress-fill" id="sidebarCreditFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <label class="toggle-row">
+                <span>Kredi bitince oto-hesap aç</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoSwitchToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </label>
+        </div>
+
+        <nav class="sidebar-menu">
+            <button class="menu-item active" onclick="toggleSidebar(false)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Canlı Sohbet</span>
+            </button>
+            <button class="menu-item" onclick="openManagerModal(); toggleSidebar(false);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M14 9l3 3-3 3"/></svg>
+                <span>Hesaplar & Log Paneli</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span id="savedAccountsCount">0 Kayıtlı Hesap</span>
+            <a href="/api/download" style="color:#a5b4fc; text-decoration:none; font-weight:600;">TXT İndir</a>
+        </div>
+    </aside>
+
+    <!-- ANA SOHBET ALANI -->
+    <main class="chat-app">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-left">
+                <button class="btn-hamburger" onclick="toggleSidebar(true)" aria-label="Menü">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="model-pill">
+                    <div class="pulse-dot"></div>
+                    <span>gemini-4-argon</span>
+                    <span style="font-size:0.7rem; color:var(--text-dim); border-left:1px solid var(--border); padding-left:6px;">Web Search</span>
+                </div>
+            </div>
+
+            <div class="top-right">
+                <div class="credits-pill" id="topCreditsPill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span id="topCreditText">0 Kredi</span>
+                </div>
+                <button class="btn-icon-nav" onclick="openManagerModal()" title="Hesap Yöneticisi & Loglar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mesaj Akış Alanı -->
+        <div class="chat-scroll-area" id="chatScrollArea">
+            <!-- Boş Sohbet Karşılama Ekranı -->
+            <div class="chat-hero" id="chatHero">
+                <div class="hero-logo-box">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+                </div>
+                <h1 class="hero-title">Bugün ne keşfetmek istersiniz?</h1>
+                <p class="hero-desc">Google Gemini 4 Argon modeli, Genspark AI Agent altyapısı üzerinden 100 ücretsiz kullanım kredisiyle aktifleştirildi.</p>
+
+                <div class="hero-suggestions">
+                    <div class="suggestion-card" onclick="sendSuggestion('Python ile async bir web scraper yaz ve kodları açıkla.')">
+                        <strong>⚡ Kod Yaz</strong>
+                        <span>Python ile modern bir web scraper hazırla</span>
+                    </div>
+                    <div class="suggestion-card" onclick="sendSuggestion('2026 yılı yapay zeka modelleri ve ajan mimarileri hakkında kapsamlı analiz yap.')">
+                        <strong>🔍 Derin Analiz</strong>
+                        <span>Son yapay zeka trendlerini karşılaştır</span>
+                    </div>
+                    <div class="suggestion-card" onclick="sendSuggestion('Kendi yapay zeka SaaS girişimim için 5 yenilikçi ürün fikri listele.')">
+                        <strong>💡 Ürün Fikirleri</strong>
+                        <span>Yüksek potansiyelli SaaS projeleri üret</span>
+                    </div>
+                    <div class="suggestion-card" onclick="sendSuggestion('Kuantum hesaplamanın temel prensiplerini anlaşılır bir dille özetle.')">
+                        <strong>📝 Kavram Açıklaması</strong>
+                        <span>Karmaşık konuları yalın biçimde özetle</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dinamik Mesajlar Buraya Eklenir -->
+        </div>
+
+        <!-- Alt Sabit Giriş Çubuğu -->
+        <div class="chat-bottom-dock">
+            <div class="input-box-wrapper">
+                <textarea 
+                    class="chat-textarea" 
+                    id="chatInput" 
+                    placeholder="Gemini 4 Argon'a bir mesaj yazın... (Enter: Gönder, Shift+Enter: Satır)" 
+                    rows="1" 
+                    oninput="autoResize(this)" 
+                    onkeydown="handleKey(event)"></textarea>
+                <button class="btn-send-message" id="btnSend" onclick="sendMessage()" title="Gönder">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                </button>
+            </div>
+            <div class="dock-note">Genspark AI & Gemini 4 Argon • Kredi bittiğinde otomatik hesap yenileme mevcuttur.</div>
+        </div>
+    </main>
+
+    <!-- HESAP YÖNETİCİSİ & LOGLAR MODAL -->
+    <div class="modal-overlay" id="managerModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M14 9l3 3-3 3"/></svg>
+                    <span>Hesap Yöneticisi & Sistem Konsolu</span>
+                </div>
+                <button class="btn-close-modal" onclick="closeManagerModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="manager-grid">
+                    <!-- Sol: Otomasyon & CAPTCHA Durumu -->
+                    <div class="card-sub">
+                        <div class="card-sub-title">
+                            <span>Sıfırdan Hesap Açıcı</span>
+                            <span id="workerBadge" class="brand-badge" style="background:rgba(255,255,255,0.06); color:var(--text-muted);">Boşta</span>
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
+                            Claude Opus 4.7 & TempMailNinja ile 10 CAPTCHA denemeli onaylı hesap açar ve 100 krediyi aktifleştirir.
+                        </p>
+                        <button class="btn-register-action" id="btnModalStart" onclick="startNewAccount()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+                            <span>Hesap Aç & Bağla</span>
+                        </button>
+
+                        <div class="captcha-preview-box">
+                            <div id="captchaPlaceholder" style="font-size:0.75rem; color:var(--text-dim); text-align:center;">
+                                Canlı CAPTCHA buraya gelecek
+                            </div>
+                            <img id="modalCaptchaImg" class="captcha-img" style="display:none;" alt="Captcha">
+                            <div id="modalCaptchaPred" style="font-size:0.8rem; font-weight:700; color:#a5b4fc;"></div>
+                        </div>
+
+                        <div style="font-size:0.78rem; display:flex; flex-direction:column; gap:6px; color:var(--text-muted);">
+                            <div>E-Posta: <strong id="valEmail" style="color:var(--text-main);">-</strong></div>
+                            <div>Onay Kodu: <strong id="valCode" style="color:var(--text-main);">-</strong></div>
+                            <div>Aşama: <strong id="valStatus" style="color:#a5b4fc;">Boşta</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Sağ: Canlı Terminal Logları -->
+                    <div class="terminal-box">
+                        <div class="terminal-bar">
+                            <span>TERMINAL LOGLARI</span>
+                            <button class="btn-mini" onclick="clearLogs()">Temizle</button>
+                        </div>
+                        <div class="terminal-content" id="terminalOutput">Log akışı bekleniyor...</div>
+                    </div>
+                </div>
+
+                <!-- Kayıtlı Hesaplar Tablosu -->
+                <div class="card-sub">
+                    <div class="card-sub-title">
+                        <span>genspark_hesaplar.txt</span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn-mini" onclick="copyAllAccounts()">Tümünü Kopyala</button>
+                            <a href="/api/download" class="btn-mini" style="text-decoration:none;">TXT İndir</a>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>E-Posta</th>
+                                    <th>Şifre</th>
+                                    <th>Biçim</th>
+                                    <th style="width:70px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTableBody">
+                                <tr><td colspan="5" style="text-align:center; color:var(--text-dim);">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KREDİ TÜKENDİ MODAL PENCERESİ -->
+    <div class="modal-overlay" id="creditAlertModal">
+        <div class="modal-container credit-alert-modal">
+            <div class="modal-header">
+                <div class="modal-title" style="color:var(--warning);">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>100 Kredi Tükendi!</span>
+                </div>
+                <button class="btn-close-modal" onclick="closeCreditModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="gap:1rem;">
+                <p style="font-size:0.9rem; color:var(--text-muted); line-height:1.5;">
+                    Mevcut Genspark hesabınızın 100 ücretsiz kullanım kredisi tamamlandı. Sohbete kesintisiz devam edebilmeniz için <strong>hemen 100 kredili yeni bir hesap açılsın mı?</strong>
+                </p>
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+                    <button class="btn-new-chat" style="width:auto; padding:0.6rem 1rem;" onclick="closeCreditModal()">Vazgeç</button>
+                    <button class="btn-register-action" style="width:auto; padding:0.6rem 1.25rem;" onclick="confirmSwitchAccount()">Evet, Yeni Hesap Aç ve Devam Et</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Bildirim (Toast) -->
+    <div class="toast-notification" id="toastPill">
+        <div class="pulse-dot"></div>
+        <span id="toastMsg">İşlem yapılıyor...</span>
+    </div>
+
+    <script>
+        let isGenerating = false;
+        let lastLogCount = 0;
+
+        // Marked.js ayarları
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-',
+            breaks: true,
+            gfm: true
+        });
+
+        function toggleSidebar(open) {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (open) {
+                sidebar.classList.add('mobile-open');
+                backdrop.classList.add('active');
+            } else {
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.remove('active');
+            }
+        }
+
+        function openManagerModal() {
+            document.getElementById('managerModal').classList.add('active');
+            fetchAccounts();
+        }
+
+        function closeManagerModal() {
+            document.getElementById('managerModal').classList.remove('active');
+        }
+
+        function closeCreditModal() {
+            document.getElementById('creditAlertModal').classList.remove('active');
+        }
+
+        function showToast(msg, duration = 4000) {
+            const t = document.getElementById('toastPill');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.add('active');
+            setTimeout(() => t.classList.remove('active'), duration);
+        }
+
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function clearChat() {
+            document.getElementById('chatScrollArea').innerHTML = `
+                <div class="chat-hero" id="chatHero">
+                    <div class="hero-logo-box">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+                    </div>
+                    <h1 class="hero-title">Bugün ne keşfetmek istersiniz?</h1>
+                    <p class="hero-desc">Google Gemini 4 Argon modeli, Genspark AI Agent altyapısı üzerinden 100 ücretsiz kullanım kredisiyle aktifleştirildi.</p>
+                </div>
+            `;
+            fetch('/api/clear_chat', { method: 'POST' });
+        }
+
+        function sendSuggestion(text) {
+            document.getElementById('chatInput').value = text;
+            sendMessage();
+        }
+
+        function appendUserMessage(text) {
+            const hero = document.getElementById('chatHero');
+            if (hero) hero.style.display = 'none';
+
+            const container = document.getElementById('chatScrollArea');
+            const row = document.createElement('div');
+            row.className = 'chat-message user';
+            row.innerHTML = `
+                <div class="msg-avatar">S</div>
+                <div class="msg-body-wrapper">
+                    <div class="msg-bubble">${escapeHtml(text)}</div>
+                </div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendAssistantPlaceholder() {
+            const hero = document.getElementById('chatHero');
+            if (hero) hero.style.display = 'none';
+
+            const container = document.getElementById('chatScrollArea');
+            const row = document.createElement('div');
+            row.className = 'chat-message assistant';
+            row.innerHTML = `
+                <div class="msg-avatar">G</div>
+                <div class="msg-body-wrapper">
+                    <div class="msg-bubble" id="currentStreamingBubble"><span class="cursor-indicator"></span></div>
+                </div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+            return document.getElementById('currentStreamingBubble');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const prompt = input.value.trim();
+            if (!prompt || isGenerating) return;
+
+            input.value = '';
+            input.style.height = 'auto';
+            appendUserMessage(prompt);
+
+            isGenerating = true;
+            document.getElementById('btnSend').disabled = true;
+
+            const bubble = appendAssistantPlaceholder();
+            let accumulatedText = "";
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: prompt })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    bubble.innerHTML = `<span style="color:var(--danger)">Hata: ${err.message || response.statusText}</span>`;
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            if (dataStr === '[DONE]') break;
+                            if (dataStr === '[CREDIT_EXHAUSTED]') {
+                                bubble.innerHTML = marked.parse(accumulatedText) + `\n\n<div style="color:var(--warning); font-weight:600; margin-top:8px;">⚠️ [HESAP KREDİSİ TÜKENDİ]</div>`;
+                                handleCreditExhausted();
+                                return;
+                            }
+                            try {
+                                const parsed = JSON.parse(dataStr);
+                                if (parsed.delta) {
+                                    accumulatedText += parsed.delta;
+                                    bubble.innerHTML = marked.parse(accumulatedText) + '<span class="cursor-indicator"></span>';
+                                    document.getElementById('chatScrollArea').scrollTop = document.getElementById('chatScrollArea').scrollHeight;
+                                }
+                            } catch (e) {
+                                accumulatedText += dataStr;
+                                bubble.innerHTML = marked.parse(accumulatedText) + '<span class="cursor-indicator"></span>';
+                            }
+                        }
+                    }
+                }
+
+                // Tamamlandı
+                bubble.innerHTML = marked.parse(accumulatedText);
+                bubble.removeAttribute('id');
+
+            } catch (err) {
+                bubble.innerHTML = `<span style="color:var(--danger)">Bağlantı hatası: ${err}</span>`;
+            } finally {
+                isGenerating = false;
+                document.getElementById('btnSend').disabled = false;
+                updateBalanceUI();
+            }
+        }
+
+        function handleCreditExhausted() {
+            const autoSwitch = document.getElementById('autoSwitchToggle').checked;
+            if (autoSwitch) {
+                confirmSwitchAccount();
+            } else {
+                document.getElementById('creditAlertModal').classList.add('active');
+            }
+        }
+
+        async function confirmSwitchAccount() {
+            closeCreditModal();
+            showToast("⚡ Yeni hesap açılıyor ve 100 kredi yükleniyor...", 7000);
+            try {
+                await fetch('/api/start', { method: 'POST' });
+                pollUntilNewAccountReady();
+            } catch (e) {
+                showToast("Hesap açma başlatılamadı!");
+            }
+        }
+
+        function pollUntilNewAccountReady() {
+            const timer = setInterval(async () => {
+                const res = await fetch('/api/status');
+                const st = await res.json();
+                if (!st.is_running && st.step === 6) {
+                    clearInterval(timer);
+                    showToast("✅ Yeni hesap bağlandı! 100 Kredi hazır.", 4000);
+                    updateBalanceUI();
+                    fetchAccounts();
+                } else if (!st.is_running && st.error) {
+                    clearInterval(timer);
+                    showToast("❌ Hesap açılırken hata: " + st.error, 5000);
+                }
+            }, 1500);
+        }
+
+        async function startNewAccount() {
+            document.getElementById('btnRegisterSidebar').disabled = true;
+            document.getElementById('btnModalStart').disabled = true;
+            showToast("Yeni hesap açma işlemi başlatıldı...");
+            try {
+                await fetch('/api/start', { method: 'POST' });
+                pollUntilNewAccountReady();
+            } catch (e) {
+                showToast("Hata oluştu");
+            }
+        }
+
+        async function updateBalanceUI() {
+            try {
+                const res = await fetch('/api/balance');
+                const data = await res.json();
+                if (data.email) {
+                    document.getElementById('sidebarEmail').innerText = data.email;
+                    document.getElementById('accountStatusIndicator').innerText = "Aktif";
+                    document.getElementById('accountStatusIndicator').style.color = "var(--success)";
+                    document.getElementById('sidebarCreditLabel').innerText = `${data.balance} / 100`;
+                    document.getElementById('topCreditText').innerText = `${data.balance} Kredi`;
+                    document.getElementById('sidebarCreditFill').style.width = `${Math.min(100, Math.max(0, data.balance))}%`;
+                } else {
+                    document.getElementById('sidebarEmail').innerText = "Hesap Yok (Açın)";
+                    document.getElementById('accountStatusIndicator').innerText = "Bekleniyor";
+                    document.getElementById('accountStatusIndicator').style.color = "var(--warning)";
+                    document.getElementById('sidebarCreditLabel').innerText = "0 / 100";
+                    document.getElementById('topCreditText').innerText = "0 Kredi";
+                    document.getElementById('sidebarCreditFill').style.width = "0%";
+                }
+            } catch (e) {}
+        }
+
+        async function clearLogs() {
+            await fetch('/api/clear_logs', { method: 'POST' });
+            document.getElementById('terminalOutput').innerText = '';
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                const isRunning = data.is_running;
+                document.getElementById('btnRegisterSidebar').disabled = isRunning;
+                document.getElementById('btnModalStart').disabled = isRunning;
+                document.getElementById('workerBadge').innerText = isRunning ? "İşleniyor..." : "Boşta";
+
+                if (data.captcha_b64) {
+                    document.getElementById('captchaPlaceholder').style.display = 'none';
+                    const img = document.getElementById('modalCaptchaImg');
+                    img.src = data.captcha_b64;
+                    img.style.display = 'block';
+                }
+                if (data.captcha_text) {
+                    document.getElementById('modalCaptchaPred').innerText = "Opus 4.7: " + data.captcha_text;
+                }
+
+                document.getElementById('valEmail').innerText = data.email || '-';
+                document.getElementById('valCode').innerText = data.code || '-';
+                document.getElementById('valStatus').innerText = data.status || 'Boşta';
+
+                const term = document.getElementById('terminalOutput');
+                if (data.logs && data.logs.length !== lastLogCount) {
+                    term.innerText = data.logs.join('\n');
+                    term.scrollTop = term.scrollHeight;
+                    lastLogCount = data.logs.length;
+                }
+            } catch (e) {}
+        }
+
+        async function fetchAccounts() {
+            try {
+                const res = await fetch('/api/accounts');
+                const list = await res.json();
+                const tbody = document.getElementById('accountsTableBody');
+                document.getElementById('savedAccountsCount').innerText = `${list.length} Kayıtlı Hesap`;
+
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-dim);">Henüz kayıtlı hesap yok.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map((acc, idx) => `
+                    <tr>
+                        <td style="color:var(--text-dim);">${idx + 1}</td>
+                        <td style="font-family:'JetBrains Mono'; font-weight:600;">${acc.email}</td>
+                        <td style="font-family:'JetBrains Mono';">${acc.password}</td>
+                        <td style="font-family:'JetBrains Mono'; color:#a5b4fc;">${acc.format}</td>
+                        <td><button class="btn-mini" onclick="copyText('${acc.format}')">Kopyala</button></td>
+                    </tr>
+                `).reverse().join('');
+            } catch (e) {}
+        }
+
+        function copyText(txt) {
+            navigator.clipboard.writeText(txt);
+            showToast("Kopyalandı: " + txt);
+        }
+
+        async function copyAllAccounts() {
+            const res = await fetch('/api/accounts');
+            const list = await res.json();
+            if (list && list.length > 0) {
+                copyText(list.map(a => a.format).join('\n'));
+            }
+        }
+
+        // Periyodik kontrol döngüleri
+        setInterval(fetchStatus, 1000);
+        setInterval(updateBalanceUI, 5000);
+        setInterval(fetchAccounts, 8000);
+
+        // İlk başlatma
+        fetchStatus();
+        updateBalanceUI();
+        fetchAccounts();
+    </script>
+</body>
+</html>
