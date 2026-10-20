@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
-Genspark AI - Canlı Gemini 4 Argon Sohbet & Otomatik Hesap Açıcı (Flask Web Panel)
+Genspark AI - Gemini 4 Argon Canlı Sohbet & Otomasyon Web Uygulaması
 =============================================================================
-Render.com ve Bulut Dağıtımları İçin Hazır Tek Dosya (Standalone) Web Uygulaması.
-- Canlı Gemini 4 Argon Sohbeti (Kesintisiz SSE Stream).
-- 100 Kredi Tükendiğinde Otomatik veya Onaylı Yeni Hesaba Geçiş Döngüsü.
-- Claude Opus 4.7 (PixelBunny) ile 10 CAPTCHA Çözme Denemesi.
-- TempMailNinja ile WebSocket tabanlı hızlı onay kodu yakalama.
-- 100 Hoş Geldin Kredisinin Otomatik Aktivasyonu (/api/payment/get_credit_balance).
-- Canlı CAPTCHA Önizleme, Terminal Logları ve Hesap Tablosu.
+Flask Backend + Modern Responsive templates/index.html UI
+- Claude Opus 4.7 & TempMailNinja ile Sıfırdan Hesap Açma
+- 100 Kredi Aktivasyonu & Canlı Kredi Takibi
+- Kesintisiz Gemini 4 Argon SSE Sohbeti
+- Kredi Bittiğinde Otomatik / Onaylı Yeni Hesaba Geçiş Döngüsü
 """
 
 import os
@@ -25,11 +23,10 @@ import threading
 import datetime
 from typing import Optional, Tuple, Dict, List, Generator
 
-# Kütüphaneler
 import requests as py_requests
 from curl_cffi import requests as cffi_requests
 import websocket
-from flask import Flask, jsonify, request, Response, render_template_string, stream_with_context
+from flask import Flask, jsonify, request, Response, render_template, stream_with_context
 
 # Windows konsol UTF-8 desteği
 if hasattr(sys.stdout, "reconfigure"):
@@ -40,10 +37,13 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 # ==============================================================================
-#  BÖLÜM 1: SABİTLER & AYARLAR
+#  BÖLÜM 1: SABİTLER VE DOSYA YOLLARI
 # ==============================================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+ACCOUNTS_FILE = os.path.join(BASE_DIR, "genspark_hesaplar.txt")
+
 GENSPARK_HOST = "https://www.genspark.ai"
-GENSPARK_B2C_BASE = "https://login.genspark.ai/gensparkad.onmicrosoft.com/b2c_1_new_login"
 DEFAULT_PASSWORD = "Password123!"
 
 # PixelBunny AI / Claude Opus 4.7
@@ -51,18 +51,16 @@ PB_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 PB_BASE_URL = "https://esndhpasoxrwzxpzjlfg.supabase.co"
 PB_DEFAULT_PASSWORD = "SifreniYaz123!"
 
-ACCOUNTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "genspark_hesaplar.txt")
-
 
 # ==============================================================================
-#  BÖLÜM 2: GLOBAL İŞ DURUMU & OTURUM YÖNETİMİ
+#  BÖLÜM 2: GLOBAL İŞ DURUMU & OTURUM HAFIZASI
 # ==============================================================================
 state_lock = threading.Lock()
 
 job_state = {
     "is_running": False,
     "status": "Hazır",
-    "step": 0,           # 0: Hazır, 1: Oturum, 2: Mail, 3: Captcha, 4: Kod, 5: Kredi/Giriş, 6: Tamamlandı
+    "step": 0,           # 0: Boşta, 1: OAuth, 2: Mail, 3: Captcha, 4: Kod, 5: Giriş, 6: Tamamlandı
     "attempt": 0,
     "captcha_b64": "",
     "captcha_text": "",
@@ -74,9 +72,8 @@ job_state = {
     "started_at": None,
 }
 
-# Aktif Chat Oturumu (Bellekte tutulur)
 active_chat = {
-    "session": None,          # cffi_requests.Session nesnesi
+    "session": None,          # cffi_requests.Session
     "email": None,
     "balance": 0,
     "history": [],            # [{"role": "user", "content": "..."}, ...]
@@ -85,7 +82,7 @@ active_chat = {
 
 
 def add_log(msg: str):
-    """Konsola ve web arayüzü hafızasına zaman damgalı log ekler."""
+    """Zaman damgalı log kaydeder."""
     t_str = datetime.datetime.now().strftime("%H:%M:%S")
     line = f"[{t_str}] {msg}"
     print(line, flush=True)
@@ -107,7 +104,7 @@ class CreditExhaustedError(Exception):
 
 
 # ==============================================================================
-#  BÖLÜM 3: PIXELBUNNY AI / CLAUDE OPUS 4.7 CAPTCHA ÇÖZÜCÜ
+#  BÖLÜM 3: PIXELBUNNY CLAUDE OPUS 4.7 CAPTCHA ÇÖZÜCÜ
 # ==============================================================================
 class SpamokTempMail:
     def random_email(self, length: int = 15) -> str:
@@ -177,134 +174,153 @@ def register_pixelbunny(password: str = PB_DEFAULT_PASSWORD) -> Tuple[Optional[s
     return access_token, user_id
 
 
-def upload_pixelbunny_attachment(token: str, image_bytes: bytes, filename: str = "captcha.jpg") -> Optional[dict]:
-    headers = {
-        "apikey": PB_API_KEY,
-        "authorization": f"Bearer {token}",
-        "x-client-info": "supabase-js-web/2.98.0",
-    }
-    files = {"file": (filename, image_bytes, "image/jpeg")}
-    r = py_requests.post(
-        f"{PB_BASE_URL}/storage/v1/object/chat-attachments/{filename}",
-        headers=headers,
-        files=files,
-        timeout=20,
-    )
-    if r.status_code in [200, 201]:
-        return {
-            "name": filename,
-            "url": f"{PB_BASE_URL}/storage/v1/object/public/chat-attachments/{filename}",
-            "type": "image/jpeg",
-            "size": len(image_bytes),
-        }
-    return None
-
-
-def create_pixelbunny_conversation(token: str, user_id: str) -> Optional[str]:
-    headers = {
-        "apikey": PB_API_KEY,
-        "authorization": f"Bearer {token}",
-        "content-type": "application/json",
-        "prefer": "return=representation",
-    }
-    r = py_requests.post(
-        f"{PB_BASE_URL}/rest/v1/chat_conversations",
-        headers=headers,
-        json={"title": "Captcha Solving", "user_id": user_id},
-        timeout=15,
-    )
-    if r.status_code in [200, 201]:
-        data = r.json()
-        if isinstance(data, list) and len(data) > 0:
-            return data[0].get("id")
-        elif isinstance(data, dict):
-            return data.get("id")
-    return None
-
-
-def ask_pixelbunny_opus(token: str, conv_id: str, prompt: str, attachment: Optional[dict] = None) -> Optional[str]:
-    headers = {
-        "apikey": PB_API_KEY,
-        "authorization": f"Bearer {token}",
-        "content-type": "application/json",
-    }
-    payload = {
-        "message": prompt,
-        "conversationId": conv_id,
-        "model": "claude-opus-4-7",
-        "attachments": [attachment] if attachment else [],
-    }
-    r = py_requests.post(
-        "https://pixelbunny.ai/api/chat",
-        headers=headers,
-        json=payload,
-        stream=True,
-        timeout=60,
-    )
-    full = ""
-    for line in r.iter_lines():
-        if line:
-            decoded = line.decode("utf-8", errors="ignore")
-            if decoded.startswith("0:"):
-                try:
-                    full += json.loads(decoded[2:])
-                except Exception:
-                    pass
-    return full.strip() if full else None
-
-
 class OpusCaptchaSolver:
     def __init__(self):
         self.token = None
         self.user_id = None
+        self.model_id = "07cae127-d0d0-4822-ba72-e6eeb2479e39"  # claude-opus-4-7
 
-    def initialize(self):
-        if not self.token:
+    def _ensure_authenticated(self):
+        if not self.token or not self.user_id:
             add_log("[*] Opus 4.7 için PixelBunny oturumu başlatılıyor...")
             self.token, self.user_id = register_pixelbunny()
-            if not self.token:
-                raise RuntimeError("PixelBunny Opus 4.7 başlatılamadı!")
+            if not self.token or not self.user_id:
+                raise RuntimeError("PixelBunny Opus 4.7 oturumu açılamadı!")
             add_log(f"[+] PixelBunny hazır! (User: {self.user_id})")
 
-    def solve(self, image_bytes: bytes, filename: str = "captcha_challenge.jpg") -> str:
-        self.initialize()
-        conv_id = create_pixelbunny_conversation(self.token, self.user_id)
-        if not conv_id:
-            raise RuntimeError("PixelBunny konuşması oluşturulamadı!")
+    def _upload_attachment(self, captcha_path: str, image_bytes: bytes) -> dict:
+        headers = {
+            "authorization": f"Bearer {self.token}",
+            "origin": "https://pixelbunny.ai",
+            "referer": "https://pixelbunny.ai/",
+        }
+        # Deneme 1: functions/v1/upload-input (2 deneme, 15s)
+        for _ in range(2):
+            try:
+                with open(captcha_path, "rb") as f:
+                    files = {"file": ("captcha.jpg", f, "image/jpeg")}
+                    r_up = py_requests.post(f"{PB_BASE_URL}/functions/v1/upload-input", headers=headers, files=files, timeout=15)
+                if r_up.status_code == 200:
+                    img_url = r_up.json().get("url")
+                    if img_url:
+                        return {"url": img_url, "type": "image/png"}
+            except Exception:
+                time.sleep(1)
 
-        rand_name = f"cap_{int(time.time())}_{random.randint(100,999)}.jpg"
-        attachment = upload_pixelbunny_attachment(self.token, image_bytes, rand_name)
-        if not attachment:
-            raise RuntimeError("Captcha görseli yüklenemedi!")
+        # Deneme 2: storage/v1/object/chat-attachments fallback (2 deneme, 15s)
+        rand_name = f"cap_{int(time.time())}_{random.randint(100, 999)}.jpg"
+        for _ in range(2):
+            try:
+                st_headers = {"apikey": PB_API_KEY, "authorization": f"Bearer {self.token}"}
+                files = {"file": (rand_name, image_bytes, "image/jpeg")}
+                r_st = py_requests.post(f"{PB_BASE_URL}/storage/v1/object/chat-attachments/{rand_name}", headers=st_headers, files=files, timeout=15)
+                if r_st.status_code in [200, 201]:
+                    pub_url = f"{PB_BASE_URL}/storage/v1/object/public/chat-attachments/{rand_name}"
+                    return {"name": rand_name, "url": pub_url, "type": "image/jpeg"}
+            except Exception:
+                time.sleep(1)
+
+        raise RuntimeError("Görsel yüklenemedi (Zaman aşımı / Ağ hatası)")
+
+    def solve(self, image_bytes: bytes, filename: str = "captcha_challenge.jpg") -> str:
+        self._ensure_authenticated()
+
+        captcha_path = os.path.join(BASE_DIR, filename)
+        with open(captcha_path, "wb") as f:
+            f.write(image_bytes)
+
+        add_log("[*] Captcha görseli yükleniyor...")
+        attachment = self._upload_attachment(captcha_path, image_bytes)
+
+        # Conversation başlat
+        conv_id = None
+        for _ in range(2):
+            try:
+                r_conv = py_requests.post(
+                    f"{PB_BASE_URL}/rest/v1/chat_conversations?select=id",
+                    headers={
+                        "apikey": PB_API_KEY,
+                        "authorization": f"Bearer {self.token}",
+                        "content-type": "application/json",
+                        "prefer": "return=representation",
+                        "accept": "application/vnd.pgrst.object+json",
+                    },
+                    json={"user_id": self.user_id, "default_model_id": self.model_id},
+                    timeout=15,
+                )
+                c_data = r_conv.json()
+                if isinstance(c_data, list) and len(c_data) > 0:
+                    conv_id = c_data[0].get("id")
+                elif isinstance(c_data, dict):
+                    conv_id = c_data.get("id")
+                if conv_id:
+                    break
+            except Exception:
+                time.sleep(1)
+
+        if not conv_id:
+            raise RuntimeError("Conversation id alınamadı!")
 
         prompt = (
-            "Görseldeki CAPTCHA metnini (harf ve rakamlar) tam olarak yaz. "
+            "Bu görseldeki CAPTCHA (güvenlik kodu) karakterlerini oku. "
+            "Karakterler üstte ve altta veya yamuk olabilir; mantıksal sırasına göre tüm harf ve rakamları yan yana birleştirerek yaz. "
+            "SADECE ve SADECE tespit ettiğin harf ve rakamları düz yazı olarak ver. "
             "Hiçbir açıklama, selamlama, markdown, boşluk veya noktalama işareti ekleme."
         )
+
         add_log("[*] Claude Opus 4.7'ye gönderiliyor...")
-        raw = ask_pixelbunny_opus(self.token, conv_id, prompt, attachment)
-        if not raw:
-            raise RuntimeError("Opus 4.7'den yanıt alınamadı!")
+        chat_payload = {
+            "conversation_id": conv_id,
+            "model_id": self.model_id,
+            "message": prompt,
+            "attachments": [attachment],
+            "incognito": False,
+            "history": [],
+        }
 
-        clean = re.sub(r"[^A-Za-z0-9]", "", raw).upper()
-        add_log(f"[+] Opus 4.7 Captcha Tahmini: {clean}")
-        return clean
+        full_resp = ""
+        for _ in range(2):
+            try:
+                with py_requests.post(
+                    f"{PB_BASE_URL}/functions/v1/chat-completion",
+                    headers={"authorization": f"Bearer {self.token}", "content-type": "application/json"},
+                    json=chat_payload,
+                    stream=True,
+                    timeout=35,
+                ) as res:
+                    res.encoding = "utf-8"
+                    for raw_line in res.iter_lines():
+                        if not raw_line:
+                            continue
+                        line = raw_line.decode("utf-8", errors="replace") if isinstance(raw_line, bytes) else raw_line
+                        line = line.strip()
+                        if not line.startswith("data:"):
+                            continue
+                        d_str = line[5:].strip()
+                        if d_str == "[DONE]":
+                            break
+                        try:
+                            data = json.loads(d_str)
+                            choices = data.get("choices", [])
+                            if choices:
+                                c = choices[0].get("delta", {}).get("content", "")
+                                if c:
+                                    full_resp += c
+                        except Exception:
+                            pass
+                if full_resp:
+                    break
+            except Exception:
+                time.sleep(1)
+
+        clean_text = re.sub(r"[^A-Za-z0-9]", "", full_resp).upper()
+        add_log(f"[+] Opus 4.7 Captcha Sonucu: {clean_text}")
+        return clean_text
 
 
 # ==============================================================================
-#  BÖLÜM 4: TEMPORARY EMAIL (TEMPMALNINJA WEBSOCKET)
+#  BÖLÜM 4: TEMPMALNINJA (GEÇİCİ E-POSTA İSTEMCİSİ - TEST.PY UYUMLU)
 # ==============================================================================
-def clean_html(html_text: str) -> str:
-    if not html_text:
-        return ""
-    text = re.sub(r"<style[^>]*>.*?</style>", "", html_text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<script[^>]*>.*?</script>", "", text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"</?(?:p|div|tr|br|h[1-6])[^>]*>", "\n", text, flags=re.IGNORECASE)
-    text = re.sub(r"<[^>]+>", "", text)
-    text = text.replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"')
-    return "\n".join(l.strip() for l in text.splitlines() if l.strip())
-
-
 class TempMailNinja:
     def __init__(self, locale: str = "en"):
         self.locale = locale
@@ -349,6 +365,7 @@ class TempMailNinja:
                 self._listener_thread = threading.Thread(target=self._listen_loop, daemon=True)
                 self._listener_thread.start()
 
+                # Session başlat
                 res = self._send_event("get_guest_user_data", {"token": self.token})
                 if res and isinstance(res, dict) and res.get("activeEmail"):
                     self.active_email_addr = res["activeEmail"].get("address")
@@ -363,66 +380,85 @@ class TempMailNinja:
     def _listen_loop(self):
         while self.is_running and self.ws:
             try:
-                msg = self.ws.recv()
+                try:
+                    msg = self.ws.recv()
+                except (websocket.WebSocketTimeoutException, TimeoutError):
+                    continue
+                except Exception:
+                    break
+
                 if not msg:
                     continue
                 if msg == "2":
-                    self.ws.send("3")
+                    try:
+                        self.ws.send("3")
+                    except Exception:
+                        pass
                     continue
+
                 if msg.startswith("43"):
-                    match = re.match(r"^43(\d+)(.*)$", msg)
-                    if match:
-                        ack_num = int(match.group(1))
-                        payload_str = match.group(2)
-                        with self._lock:
-                            holder = self._pending_acks.get(ack_num)
-                        if holder:
-                            try:
-                                holder["result"] = json.loads(payload_str)[0]
-                            except Exception:
-                                holder["result"] = payload_str
-                            holder["event"].set()
+                    rest = msg[2:]
+                    num_str = ""
+                    for ch in rest:
+                        if ch.isdigit():
+                            num_str += ch
+                        else:
+                            break
+                    if num_str:
+                        ack_num = int(num_str)
+                        payload_str = rest[len(num_str):]
+                        try:
+                            payload = json.loads(payload_str)
+                            res = payload[0] if isinstance(payload, list) and len(payload) > 0 else payload
+                            if ack_num in self._pending_acks:
+                                event, result_holder = self._pending_acks[ack_num]
+                                result_holder["result"] = res
+                                event.set()
+                        except Exception:
+                            pass
+
                 elif msg.startswith("42"):
                     payload_str = msg[2:]
                     try:
-                        parsed = json.loads(payload_str)
-                        evt_name, evt_data = parsed[0], parsed[1] if len(parsed) > 1 else {}
-                        if evt_name == "new_email_message":
-                            data = evt_data.get("data", {})
-                            combined = f"{data.get('subject', '')} {clean_html(data.get('content', ''))}"
-                            m = re.search(r"\b(\d{6})\b", combined)
-                            if m:
-                                code = m.group(1)
+                        data = json.loads(payload_str)
+                        if isinstance(data, list) and len(data) >= 2 and data[0] == "new_message_notify":
+                            mail = data[1].get("email_message", data[1])
+                            subject = mail.get("subject", "")
+                            m_code = re.search(r"\b(\d{6})\b", subject)
+                            if m_code:
+                                code = m_code.group(1)
                                 self.received_codes.append(code)
                                 add_log(f"[+] Doğrulama Kodu Yakalandı (WebSocket Push): {code}")
                     except Exception:
                         pass
             except Exception:
-                break
+                continue
         self.is_connected = False
 
-    def _send_event(self, event_name: str, data: dict = None, timeout: int = 15):
+    def _send_event(self, event_name: str, data=None, timeout: int = 15):
         if not self.is_connected or not self.ws:
-            return None
+            self.connect()
+
         with self._lock:
+            current_ack = self.ack_id
             self.ack_id += 1
-            cur_ack = self.ack_id
-            holder = {"event": threading.Event(), "result": None}
-            self._pending_acks[cur_ack] = holder
+            done_event = threading.Event()
+            result_holder = {"result": None}
+            self._pending_acks[current_ack] = (done_event, result_holder)
 
-        msg = f"42{cur_ack}" + json.dumps([event_name, data or {}])
-        try:
-            self.ws.send(msg)
-        except Exception:
+            packet = f'42{current_ack}["{event_name}",{json.dumps(data)}]' if data is not None else f'42{current_ack}["{event_name}"]'
+            try:
+                self.ws.send(packet)
+            except Exception:
+                self._pending_acks.pop(current_ack, None)
+                return None
+
+        if not done_event.wait(timeout):
+            self._pending_acks.pop(current_ack, None)
             return None
 
-        if holder["event"].wait(timeout):
-            with self._lock:
-                self._pending_acks.pop(cur_ack, None)
-            return holder["result"]
-        with self._lock:
-            self._pending_acks.pop(cur_ack, None)
-        return None
+        self._pending_acks.pop(current_ack, None)
+        return result_holder["result"]
 
     def _subscribe_inbox(self):
         try:
@@ -449,10 +485,15 @@ class TempMailNinja:
         return res.get("email_messages", []) if (res and isinstance(res, dict)) else []
 
     def get_message_detail(self, message_id):
-        res = self._send_event("get_email_message", {"messageId": int(message_id)}, timeout=15)
+        try:
+            mid = int(message_id)
+        except (ValueError, TypeError):
+            mid = message_id
+        res = self._send_event("get_email_message", {"messageId": mid}, timeout=15)
         if res and isinstance(res, dict) and "emailMessage" in res:
-            data = res["emailMessage"].get("data", {})
-            return {"subject": data.get("subject", ""), "clean_text": clean_html(data.get("content", ""))}
+            msg_obj = res["emailMessage"]
+            data = msg_obj.get("data", {})
+            return {"subject": data.get("subject", ""), "content": data.get("content", "")}
         return None
 
     def close(self):
@@ -466,32 +507,37 @@ class TempMailNinja:
         self.is_connected = False
 
 
-def wait_for_genspark_code(mail_client: TempMailNinja, timeout: int = 180) -> Optional[str]:
-    add_log(f"[*] Onay kodu bekleniyor (Zaman aşımı: {timeout}s)...")
+def wait_for_code(mail_client: TempMailNinja, timeout: int = 180) -> Optional[str]:
+    add_log(f"[*] Onay kodu bekleniyor ({timeout}s zaman aşımı)...")
     start = time.time()
     while time.time() - start < timeout:
         if mail_client.received_codes:
             code = mail_client.received_codes.pop(0)
+            add_log(f"[+] Doğrulama Kodu Yakalandı (Push): {code}")
             return code
 
-        messages = mail_client.get_messages()
-        if messages:
-            for m in messages:
-                mid = m.get("id")
-                detail = mail_client.get_message_detail(mid)
-                if not detail:
-                    continue
-                code_match = re.search(r"\b(\d{6})\b", detail.get("clean_text", "") + " " + detail.get("subject", ""))
-                if code_match:
-                    code = code_match.group(1)
-                    add_log(f"[+] Doğrulama Kodu Yakalandı (Inbox): {code}")
-                    return code
+        try:
+            messages = mail_client.get_messages()
+            if messages:
+                for m in messages:
+                    mid = m.get("id")
+                    detail = mail_client.get_message_detail(mid)
+                    if not detail:
+                        continue
+                    code_match = re.search(r"\b(\d{6})\b", detail.get("subject", "") + " " + detail.get("content", ""))
+                    if code_match:
+                        code = code_match.group(1)
+                        add_log(f"[+] Doğrulama Kodu Yakalandı (Inbox): {code}")
+                        return code
+        except Exception:
+            pass
+
         time.sleep(2)
     return None
 
 
 # ==============================================================================
-#  BÖLÜM 5: GENSPARK SIFIRDAN HESAP AÇMA VE WEB GİRİŞİ MOTORU
+#  BÖLÜM 5: GENSPARK SIFIRDAN HESAP AÇMA & WEB GİRİŞİ
 # ==============================================================================
 def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple[cffi_requests.Session, str, int]:
     """
@@ -499,7 +545,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
     Döner: (session, email, balance)
     """
     add_log("==================================================")
-    add_log("  GENSPARK YENİ HESAP AÇMA VE GİRİŞ AKIŞI")
+    add_log("  GENSPARK SIFIRDAN HESAP AÇMA VE GİRİŞ AKIŞI")
     add_log("==================================================")
 
     session = cffi_requests.Session(impersonate="chrome120")
@@ -575,15 +621,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
                 b64_img = "data:image/jpeg;base64," + base64.b64encode(image_bytes).decode("ascii")
                 update_state(captcha_b64=b64_img)
 
-                # Yerel dizine captcha dosyasını yaz
-                try:
-                    cap_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "captcha_challenge.jpg")
-                    with open(cap_file, "wb") as f:
-                        f.write(image_bytes)
-                except Exception:
-                    pass
-
-                captcha_text = solver.solve(image_bytes)
+                captcha_text = solver.solve(image_bytes, filename="captcha_challenge.jpg")
                 update_state(captcha_text=captcha_text)
 
                 ver_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/captchaControlChallengeCode/VerifyChallenge?tx={tx}&p={policy}"
@@ -604,7 +642,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
                     time.sleep(1)
             except Exception as e:
                 add_log(f"[!] Deneme ({attempt}) sırasında geçici bağlantı/zaman aşımı hatası: {e}")
-                add_log("[*] Oturum korunarak bir sonraki görsel deneniyor...")
+                add_log("[*] Oturum korunarak yeni görsel çekiliyor...")
                 time.sleep(1.5)
 
         if not captcha_solved:
@@ -618,7 +656,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         if r_scode.json().get("status") != "200":
             raise RuntimeError(f"Doğrulama kodu gönderilemedi: {r_scode.text}")
 
-        code = wait_for_genspark_code(mail_client, timeout=180)
+        code = wait_for_code(mail_client, timeout=180)
         if not code:
             raise RuntimeError("3 dakika içinde e-posta onay kodu gelmedi.")
         update_state(code=code)
@@ -817,7 +855,7 @@ def stream_genspark_chat(
 
 
 # ==============================================================================
-#  BÖLÜM 7: ARKA PLAN HESAP İŞÇİSİ (BACKGROUND THREAD)
+#  BÖLÜM 7: ARKA PLAN HESAP İŞÇİSİ
 # ==============================================================================
 def background_account_worker(password: str = DEFAULT_PASSWORD):
     """Arka planda tek seferlik yeni hesap açar ve aktif chat oturumuna bağlar."""
@@ -854,1037 +892,14 @@ def background_account_worker(password: str = DEFAULT_PASSWORD):
 
 
 # ==============================================================================
-#  BÖLÜM 8: FLASK UYGULAMASI & HTML ŞABLONU (MODERN RESPONSIVE DARK UI)
+#  BÖLÜM 8: FLASK UYGULAMASI & API ENDPOINTLERİ
 # ==============================================================================
-app = Flask(__name__)
+app = Flask(__name__, template_folder=TEMPLATES_DIR)
 
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genspark AI - Gemini 4 Argon Sohbet & Hesap Yöneticisi</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0b0f19;
-            --surface: #111827;
-            --surface-card: #162032;
-            --border: #243247;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
-            --accent-glow: rgba(99, 102, 241, 0.25);
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-        }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        .ambient-bg {
-            position: fixed;
-            top: -20%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(11, 15, 25, 0) 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        header {
-            background-color: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 1.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-icon {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .brand-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .brand-subtitle {
-            font-size: 0.75rem;
-            color: var(--text-sub);
-        }
-
-        .nav-tabs {
-            display: flex;
-            gap: 0.5rem;
-            background: rgba(15, 23, 42, 0.7);
-            padding: 4px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-        }
-
-        .nav-tab {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            color: var(--text-sub);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .nav-tab.active {
-            background: var(--accent);
-            color: #fff;
-            box-shadow: 0 2px 8px var(--accent-glow);
-        }
-
-        .header-badges {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .badge-account {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: var(--success);
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-credits {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #a5b4fc;
-            padding: 0.4rem 0.8rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        main {
-            flex: 1;
-            max-width: 1300px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .tab-content {
-            display: none;
-            width: 100%;
-        }
-
-        .tab-content.active {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        /* SOHBET ARAYÜZÜ (CHAT UI) */
-        .chat-container {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            height: calc(100vh - 180px);
-            min-height: 550px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        .chat-header {
-            padding: 0.85rem 1.25rem;
-            background: rgba(15, 23, 42, 0.6);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .chat-model-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #c7d2fe;
-        }
-
-        .chat-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .auto-switch-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .auto-switch-toggle input {
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 1.25rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            scroll-behavior: smooth;
-        }
-
-        .message-row {
-            display: flex;
-            gap: 0.75rem;
-            max-width: 85%;
-        }
-
-        .message-row.user {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .message-row.assistant {
-            align-self: flex-start;
-        }
-
-        .avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-        }
-
-        .avatar.user {
-            background: #3b82f6;
-            color: #fff;
-        }
-
-        .avatar.assistant {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: #fff;
-        }
-
-        .msg-bubble {
-            padding: 0.85rem 1.15rem;
-            border-radius: 14px;
-            font-size: 0.95rem;
-            line-height: 1.55;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .message-row.user .msg-bubble {
-            background-color: var(--accent);
-            color: #ffffff;
-            border-top-right-radius: 4px;
-        }
-
-        .message-row.assistant .msg-bubble {
-            background-color: var(--surface-card);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-top-left-radius: 4px;
-        }
-
-        .chat-input-area {
-            padding: 1rem 1.25rem;
-            background: rgba(15, 23, 42, 0.75);
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-
-        .chat-input {
-            flex: 1;
-            background: #0b0f19;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 0.95rem;
-            resize: none;
-            outline: none;
-            max-height: 140px;
-            min-height: 44px;
-        }
-
-        .chat-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-glow);
-        }
-
-        .btn-send {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 0.75rem 1.4rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            height: 44px;
-        }
-
-        .btn-send:hover {
-            background: var(--accent-hover);
-        }
-
-        .btn-send:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* HESAP YÖNETİCİSİ PANELİ (DASHBOARD) */
-        .grid-dashboard {
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 900px) {
-            .grid-dashboard {
-                grid-template-columns: 1fr;
-            }
-            .chat-container {
-                height: calc(100vh - 220px);
-            }
-        }
-
-        .card {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .captcha-box {
-            background: var(--surface-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.75rem;
-            min-height: 140px;
-            justify-content: center;
-        }
-
-        .captcha-img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .terminal-container {
-            background: #070a12;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            height: 380px;
-            overflow: hidden;
-        }
-
-        .terminal-header {
-            background: #0d131f;
-            padding: 0.5rem 1rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-sub);
-            font-size: 0.75rem;
-        }
-
-        .terminal-body {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            color: #d1d5db;
-            white-space: pre-wrap;
-            line-height: 1.5;
-        }
-
-        .table-container {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.85rem;
-        }
-
-        th {
-            background: rgba(15, 23, 42, 0.6);
-            padding: 0.75rem 1rem;
-            color: var(--text-sub);
-            font-weight: 600;
-            border-bottom: 1px solid var(--border);
-        }
-
-        td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .btn-copy {
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #a5b4fc;
-            padding: 0.3rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-copy:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        /* MODAL KREDİ BİTTİ DİYALOĞU */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.75rem;
-            max-width: 440px;
-            width: 90%;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            animation: popIn 0.2s ease-out;
-        }
-
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--warning);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .modal-body {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            line-height: 1.5;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-sub);
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-    </style>
-</head>
-<body>
-    <div class="ambient-bg"></div>
-
-    <header>
-        <div class="brand">
-            <div class="logo-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-            </div>
-            <div>
-                <div class="brand-title">Genspark AI Suite</div>
-                <div class="brand-subtitle">Gemini 4 Argon & Otomatik Hesap Açıcı</div>
-            </div>
-        </div>
-
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('chatTab')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Canlı Sohbet
-            </button>
-            <button class="nav-tab" onclick="switchTab('managerTab')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
-                Hesap Yöneticisi & Loglar
-            </button>
-        </div>
-
-        <div class="header-badges">
-            <div class="badge-account" id="badgeAccount">
-                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor;"></span>
-                <span id="badgeAccountText">Hesap: Bekleniyor</span>
-            </div>
-            <div class="badge-credits" id="badgeCredits">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M16 10H8"/></svg>
-                <span id="badgeCreditsText">Kredi: 0</span>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <!-- SEKME 1: CANLI GEMINI 4 ARGON SOHBETİ -->
-        <div id="chatTab" class="tab-content active">
-            <div class="chat-container">
-                <div class="chat-header">
-                    <div class="chat-model-info">
-                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
-                        Model: <strong>gemini-4-argon</strong> (Genspark Agent Proxy)
-                    </div>
-                    <div class="chat-controls">
-                        <label class="auto-switch-toggle" title="Kredi bittiğinde sormadan doğrudan yeni hesap açar">
-                            <input type="checkbox" id="autoSwitchToggle" checked>
-                            <span>Kredi bitince otomatik yeni hesaba geç</span>
-                        </label>
-                        <button class="btn-copy" onclick="clearChat()">Sohbeti Temizle</button>
-                    </div>
-                </div>
-
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message-row assistant">
-                        <div class="avatar assistant">G</div>
-                        <div class="msg-bubble">Merhaba! Ben Gemini 4 Argon. Genspark üzerinden 100 ücretsiz kullanım kredisiyle aktifleştirildim. Bugün ne hakkında konuşmak istersiniz?</div>
-                    </div>
-                </div>
-
-                <div class="chat-input-area">
-                    <textarea class="chat-input" id="chatInput" placeholder="Gemini 4 Argon'a bir mesaj yazın... (Enter: Gönder, Shift+Enter: Yeni Satır)" rows="1" onkeydown="handleInputKey(event)"></textarea>
-                    <button class="btn-send" id="btnSend" onclick="sendMessage()">
-                        <span>Gönder</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- SEKME 2: HESAP AÇICI & TERMINAL DASHBOARD -->
-        <div id="managerTab" class="tab-content">
-            <div class="grid-dashboard">
-                <div class="card">
-                    <div class="card-title">
-                        <span>Manuel Hesap Açıcı</span>
-                        <span id="workerIndicator" style="font-size: 0.75rem; color: var(--text-sub);">Boşta</span>
-                    </div>
-                    <p style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.4;">
-                        Claude Opus 4.7 & TempMailNinja ile sıfırdan 100 kredili onaylı hesap açar ve chat oturumuna bağlar.
-                    </p>
-                    <button class="btn-primary" id="btnStartRegister" onclick="startNewAccount()">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                        Yeni Hesap Aç ve Bağla
-                    </button>
-
-                    <div class="captcha-box">
-                        <div id="captchaPlaceholder" style="font-size: 0.8rem; color: var(--text-sub); text-align: center;">
-                            Görsel CAPTCHA burada önizlenir
-                        </div>
-                        <img id="captchaImage" class="captcha-img" style="display:none;" src="" alt="CAPTCHA Challenge">
-                        <div id="captchaPrediction" style="font-size: 0.8rem; font-weight: 700; color: #a5b4fc;"></div>
-                    </div>
-
-                    <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; color: var(--text-sub);">
-                        <div>E-Posta: <strong id="valEmail" style="color:var(--text-main);">-</strong></div>
-                        <div>Onay Kodu: <strong id="valCode" style="color:var(--text-main);">-</strong></div>
-                        <div>Aşama: <strong id="valStatus" style="color:var(--accent);">-</strong></div>
-                    </div>
-                </div>
-
-                <div class="terminal-container">
-                    <div class="terminal-header">
-                        <span>CANLI İŞLEM LOGLARI</span>
-                        <button class="btn-copy" onclick="clearLogs()">Temizle</button>
-                    </div>
-                    <div class="terminal-body" id="terminalBody">Sistem hazır. Loglar burada akacak...</div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-weight: 700; font-size: 0.95rem;">Kayıtlı Genspark Hesapları (genspark_hesaplar.txt)</div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-copy" onclick="copyAllAccounts()">Tümünü Kopyala</button>
-                        <a href="/api/download" class="btn-copy" style="text-decoration:none;">TXT İndir</a>
-                    </div>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">#</th>
-                            <th>E-Posta</th>
-                            <th>Şifre</th>
-                            <th>Biçim</th>
-                            <th style="width: 80px;">İşlem</th>
-                        </tr>
-                    </thead>
-                    <tbody id="accountsTableBody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-sub);">Yükleniyor...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <!-- KREDİ TÜKENDİ MODAL PENCERESİ -->
-    <div class="modal-overlay" id="creditExhaustedModal">
-        <div class="modal-card">
-            <div class="modal-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Hesap Kredisi Tükendi!
-            </div>
-            <div class="modal-body">
-                Mevcut Genspark hesabının 100 ücretsiz kullanım kredisi tamamlandı. Sohbete kesintisiz devam etmek için <strong>yeni bir hesap açılsın mı?</strong>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeModal()">İptal</button>
-                <button class="btn-primary" style="width:auto; padding: 0.6rem 1.2rem;" onclick="confirmSwitchNewAccount()">Evet, Yeni Hesap Aç ve Devam Et</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let isGenerating = false;
-        let lastLogCount = 0;
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function handleInputKey(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function clearChat() {
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="message-row assistant">
-                    <div class="avatar assistant">G</div>
-                    <div class="msg-bubble">Sohbet geçmişi temizlendi. Size nasıl yardımcı olabilirim?</div>
-                </div>
-            `;
-            fetch('/api/clear_chat', { method: 'POST' });
-        }
-
-        function closeModal() {
-            document.getElementById('creditExhaustedModal').classList.remove('active');
-        }
-
-        function showCreditModal() {
-            const autoSwitch = document.getElementById('autoSwitchToggle').checked;
-            if (autoSwitch) {
-                confirmSwitchNewAccount();
-            } else {
-                document.getElementById('creditExhaustedModal').classList.add('active');
-            }
-        }
-
-        async function confirmSwitchNewAccount() {
-            closeModal();
-            appendAssistantMessage("⏳ Kredi tükendi. Yeni bir Genspark hesabı açılıyor ve 100 kredi aktifleştiriliyor...");
-            try {
-                await fetch('/api/start', { method: 'POST' });
-                // Hesap açılana kadar bekle
-                pollUntilAccountReady();
-            } catch (err) {
-                appendAssistantMessage("❌ Yeni hesap açma başlatılamadı: " + err);
-            }
-        }
-
-        async function pollUntilAccountReady() {
-            const interval = setInterval(async () => {
-                const res = await fetch('/api/status');
-                const st = await res.json();
-                if (!st.is_running && st.step === 6) {
-                    clearInterval(interval);
-                    appendAssistantMessage("✅ Yeni hesap başarıyla bağlandı! 100 kredi hazır. Kaldığımız yerden devam edebilirsiniz.");
-                    updateBalanceHeader();
-                } else if (!st.is_running && st.error) {
-                    clearInterval(interval);
-                    appendAssistantMessage("❌ Yeni hesap açılırken hata: " + st.error);
-                }
-            }, 1500);
-        }
-
-        function appendUserMessage(text) {
-            const container = document.getElementById('chatMessages');
-            const row = document.createElement('div');
-            row.className = 'message-row user';
-            row.innerHTML = `<div class="avatar user">S</div><div class="msg-bubble">${escapeHtml(text)}</div>`;
-            container.appendChild(row);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function appendAssistantMessage(text) {
-            const container = document.getElementById('chatMessages');
-            const row = document.createElement('div');
-            row.className = 'message-row assistant';
-            row.innerHTML = `<div class="avatar assistant">G</div><div class="msg-bubble">${escapeHtml(text)}</div>`;
-            container.appendChild(row);
-            container.scrollTop = container.scrollHeight;
-            return row.querySelector('.msg-bubble');
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const prompt = input.value.trim();
-            if (!prompt || isGenerating) return;
-
-            input.value = '';
-            appendUserMessage(prompt);
-
-            isGenerating = true;
-            document.getElementById('btnSend').disabled = true;
-
-            const bubble = appendAssistantMessage("");
-            let assistantText = "";
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: prompt })
-                });
-
-                if (response.status === 402) {
-                    // Credit exhausted
-                    bubble.innerText = "[UYARI] Bu hesabın 100 kredisi tükendi!";
-                    showCreditModal();
-                    return;
-                }
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    bubble.innerText = "Hata: " + (err.message || response.statusText);
-                    return;
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const chunk = decoder.decode(value, { stream: true });
-                    
-                    const lines = chunk.split('\\n');
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const dataStr = line.slice(6);
-                            if (dataStr === '[DONE]') break;
-                            if (dataStr === '[CREDIT_EXHAUSTED]') {
-                                bubble.innerText += "\\n\\n[!] Hesap kredisi tükendi!";
-                                showCreditModal();
-                                return;
-                            }
-                            try {
-                                const parsed = JSON.parse(dataStr);
-                                if (parsed.delta) {
-                                    assistantText += parsed.delta;
-                                    bubble.innerText = assistantText;
-                                    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-                                }
-                            } catch (e) {
-                                assistantText += dataStr;
-                                bubble.innerText = assistantText;
-                            }
-                        }
-                    }
-                }
-            } catch (err) {
-                bubble.innerText = "Bağlantı hatası: " + err;
-            } finally {
-                isGenerating = false;
-                document.getElementById('btnSend').disabled = false;
-                updateBalanceHeader();
-            }
-        }
-
-        async function updateBalanceHeader() {
-            try {
-                const res = await fetch('/api/balance');
-                const data = await res.json();
-                if (data.email) {
-                    document.getElementById('badgeAccountText').innerText = "Hesap: " + data.email;
-                    document.getElementById('badgeCreditsText').innerText = "Kredi: " + data.balance + " / 100";
-                } else {
-                    document.getElementById('badgeAccountText').innerText = "Hesap: Yok (Yeni Açın)";
-                    document.getElementById('badgeCreditsText').innerText = "Kredi: 0";
-                }
-            } catch (e) {}
-        }
-
-        async function startNewAccount() {
-            document.getElementById('btnStartRegister').disabled = true;
-            try {
-                await fetch('/api/start', { method: 'POST' });
-            } catch (e) {}
-        }
-
-        async function clearLogs() {
-            await fetch('/api/clear_logs', { method: 'POST' });
-            document.getElementById('terminalBody').innerText = '';
-        }
-
-        async function fetchStatus() {
-            try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
-
-                const isRunning = data.is_running;
-                document.getElementById('btnStartRegister').disabled = isRunning;
-                document.getElementById('workerIndicator').innerText = isRunning ? "Çalışıyor..." : "Boşta";
-
-                // Captcha
-                if (data.captcha_b64) {
-                    document.getElementById('captchaPlaceholder').style.display = 'none';
-                    const img = document.getElementById('captchaImage');
-                    img.src = data.captcha_b64;
-                    img.style.display = 'block';
-                }
-                if (data.captcha_text) {
-                    document.getElementById('captchaPrediction').innerText = "Opus 4.7: " + data.captcha_text;
-                }
-
-                document.getElementById('valEmail').innerText = data.email || '-';
-                document.getElementById('valCode').innerText = data.code || '-';
-                document.getElementById('valStatus').innerText = data.status || 'Boşta';
-
-                // Loglar
-                const terminal = document.getElementById('terminalBody');
-                if (data.logs && data.logs.length !== lastLogCount) {
-                    terminal.innerText = data.logs.join('\\n');
-                    terminal.scrollTop = terminal.scrollHeight;
-                    lastLogCount = data.logs.length;
-                }
-
-            } catch (err) {}
-        }
-
-        async function fetchAccounts() {
-            try {
-                const res = await fetch('/api/accounts');
-                const list = await res.json();
-                const tbody = document.getElementById('accountsTableBody');
-
-                if (!list || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-sub);">Henüz hesap yok.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = list.map((acc, idx) => `
-                    <tr>
-                        <td style="color: var(--text-sub);">${idx + 1}</td>
-                        <td class="font-mono"><strong>${acc.email}</strong></td>
-                        <td class="font-mono">${acc.password}</td>
-                        <td class="font-mono" style="color: #a5b4fc;">${acc.format}</td>
-                        <td><button class="btn-copy" onclick="copyText('${acc.format}')">Kopyala</button></td>
-                    </tr>
-                `).reverse().join('');
-            } catch (err) {}
-        }
-
-        function copyText(txt) {
-            navigator.clipboard.writeText(txt);
-            alert("Kopyalandı: " + txt);
-        }
-
-        async function copyAllAccounts() {
-            const res = await fetch('/api/accounts');
-            const list = await res.json();
-            if (list && list.length > 0) {
-                copyText(list.map(a => a.format).join('\\n'));
-            }
-        }
-
-        // Periyodik polling
-        setInterval(fetchStatus, 1000);
-        setInterval(fetchAccounts, 4000);
-        setInterval(updateBalanceHeader, 5000);
-
-        fetchStatus();
-        fetchAccounts();
-        updateBalanceHeader();
-    </script>
-</body>
-</html>
-"""
-
-
-# ==============================================================================
-#  BÖLÜM 9: FLASK API ENDPOINTLERİ
-# ==============================================================================
 @app.route("/")
 def index():
-    return render_template_string(HTML_TEMPLATE)
+    return render_template("index.html")
 
 
 @app.route("/api/balance", methods=["GET"])
@@ -1894,7 +909,7 @@ def api_balance():
         email = active_chat.get("email")
         balance = active_chat.get("balance", 0)
 
-    # Canlı güncel bakiyeyi sorgulamayı dene
+    # Canlı güncel bakiyeyi sorgula
     if session:
         try:
             r = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=5)
@@ -1941,13 +956,12 @@ def api_chat():
 
     with state_lock:
         session = active_chat.get("session")
-        email = active_chat.get("email")
         history = list(active_chat.get("history", []))
 
     if not session:
         return jsonify({
             "status": "no_account",
-            "message": "Henüz aktif bir hesap yok. Lütfen önce 'Yeni Hesap Aç' butonuna basın.",
+            "message": "Henüz aktif bir hesap yok. Lütfen önce sol menüden 'Yeni Hesap Aç' butonuna tıklayın.",
         }), 400
 
     def generate_events():
@@ -1957,7 +971,7 @@ def api_chat():
                 full_reply += delta
                 yield f"data: {json.dumps({'delta': delta})}\n\n"
 
-            # Başarıyla tamamlandı, geçmişi kaydet
+            # Başarıyla tamamlandı, geçmişe ekle
             with state_lock:
                 active_chat["history"].append({"role": "user", "content": user_prompt})
                 active_chat["history"].append({"role": "assistant", "content": full_reply})
@@ -2027,7 +1041,7 @@ def api_download():
 
 
 # ==============================================================================
-#  BÖLÜM 10: GİRİŞ NOKTASI
+#  BÖLÜM 9: GİRİŞ NOKTASI
 # ==============================================================================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
