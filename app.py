@@ -47,6 +47,18 @@ ACCOUNTS_FILE = os.path.join(BASE_DIR, "genspark_hesaplar.txt")
 GENSPARK_HOST = "https://www.genspark.ai"
 DEFAULT_PASSWORD = "Password123!"
 
+# ==============================================================================
+#  PROXY YAPILANDIRMASI
+# ==============================================================================
+# PROXY_MODE: 0 -> Kapalı (Doğrudan bağlantı), 1 -> Açık (Proxy üzerinden bağlantı)
+PROXY_MODE = int(os.environ.get("PROXY_MODE", 1))
+PROXY_URL = os.environ.get("PROXY_URL", "http://tghpxuwn:dxrsnpsyz3df@198.23.243.226:6361")
+
+def get_proxies() -> Optional[Dict[str, str]]:
+    if PROXY_MODE == 1 and PROXY_URL:
+        return {"http": PROXY_URL, "https": PROXY_URL}
+    return None
+
 # PixelBunny AI / Claude Opus 4.7
 PB_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzbmRocGFzb3hyd3p4cHpqbGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNDgxNjgsImV4cCI6MjA4NzkyNDE2OH0.cStXgyUmRDoaIctjoH4aNL2DUjjcnZLn_7VFNyEbdzE"
 PB_BASE_URL = "https://esndhpasoxrwzxpzjlfg.supabase.co"
@@ -831,7 +843,12 @@ def stream_genspark_chat(
     }
 
     ask_url = f"{GENSPARK_HOST}/api/agent/ask_proxy"
-    res = session.post(ask_url, headers=headers, json=payload, stream=True, timeout=60)
+    proxies = get_proxies()
+    if proxies:
+        proxy_host = PROXY_URL.split("@")[-1] if "@" in PROXY_URL else PROXY_URL
+        add_log(f"[*] Chat isteği proxy üzerinden gönderiliyor ({proxy_host})...")
+
+    res = session.post(ask_url, headers=headers, json=payload, stream=True, proxies=proxies, timeout=60)
 
     if res.status_code != 200:
         err_body = b""
