@@ -832,8 +832,11 @@ def stream_genspark_chat(
     ask_url = f"{GENSPARK_HOST}/api/agent/ask_proxy"
     res = session.post(ask_url, headers=headers, json=payload, stream=True, timeout=60)
 
-    if res.status_code in [401, 403, 429]:
-        raise CreditExhaustedError(f"Genspark kredi kotası doldu veya oturum sonlandı (HTTP {res.status_code}).")
+    if res.status_code in [401, 403]:
+        # Oturum geçersiz veya Cloudflare koruması (Kredi tükenmesi değil!)
+        raise GensparkSessionError(f"Genspark oturumu geçersiz veya Cloudflare engeline takıldı (HTTP {res.status_code}).")
+    elif res.status_code == 429:
+        raise RuntimeError("Genspark istek hız sınırı aşıldı (HTTP 429). Lütfen birkaç saniye bekleyin.")
     elif res.status_code != 200:
         raise RuntimeError(f"Genspark ask_proxy sunucu hatası (HTTP {res.status_code})")
 
@@ -942,6 +945,25 @@ def login_existing_account(email: str, password: str = DEFAULT_PASSWORD) -> Opti
         return None
 
 
+def reauth_active_session() -> Optional[cffi_requests.Session]:
+    """Aktif oturum 401/403 aldığında hesaba sıfırdan şifresiyle tekrar web girişi yapar."""
+    with state_lock:
+        email = active_chat.get("email")
+    if not email:
+        return None
+    add_log(f"[*] Genspark oturumu yenileniyor: {email}...")
+    res = login_existing_account(email, DEFAULT_PASSWORD)
+    if res:
+        new_session, bal = res
+        with state_lock:
+            active_chat["session"] = new_session
+            active_chat["balance"] = bal
+            active_chat["is_credit_exhausted"] = (bal <= 0)
+        add_log(f"[+] Oturum başarıyla yenilendi! (Güncel Bakiye: {bal})")
+        return new_session
+    return None
+
+
 def auto_connect_latest_account():
     """Başlangıçta genspark_hesaplar.txt dosyasındaki son hesabı otomatik bağlamayı dener."""
     if not os.path.exists(ACCOUNTS_FILE):
@@ -1033,7 +1055,7 @@ def api_balance():
 def api_start():
     with state_lock:
         if job_state["is_running"]:
-            return jsonify({"status": "already_running"}), 400
+            return jsonify({"status": "already_running", "message": "Hesap açma işlemi zaten devam ediyor."}), 200
 
     data = request.get_json(silent=True) or {}
     password = data.get("password") or DEFAULT_PASSWORD
@@ -1069,9 +1091,27 @@ def api_chat():
     def generate_events():
         full_reply = ""
         try:
-            for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history):
-                full_reply += delta
-                yield f"data: {json.dumps({'delta': delta})}\n\n"
+            nonlocal session
+            streamed = False
+            try:
+                for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history):
+                    streamed = True
+                    full_reply += delta
+                    yield f"data: {json.dumps({'delta': delta})}\n\n"
+            except GensparkSessionError:
+                if not streamed:
+                    add_log("[!] Oturum yetkilendirme uyarısı alındı, oturum yenilenip tekrar deneniyor...")
+                    refreshed = reauth_active_session()
+                    if refreshed:
+                        session = refreshed
+                        for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history):
+                            streamed = True
+                            full_reply += delta
+                            yield f"data: {json.dumps({'delta': delta})}\n\n"
+                    else:
+                        raise RuntimeError("Genspark oturumu geçersiz ve yenilenemedi.")
+                else:
+                    raise
 
             # Başarıyla tamamlandı, geçmişe ekle
             if full_reply.strip() and not full_reply.startswith("[HATA]"):
