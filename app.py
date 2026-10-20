@@ -854,6 +854,88 @@ def stream_genspark_chat(
             break
 
 
+def login_existing_account(email: str, password: str = DEFAULT_PASSWORD) -> Optional[Tuple[cffi_requests.Session, int]]:
+    """Kayıtlı mevcut bir hesaba web üzerinden giriş yapar ve oturum ile bakiyeyi döner."""
+    session = cffi_requests.Session(impersonate="chrome120")
+    session.headers.update({
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+    })
+    try:
+        r0 = session.get(f"{GENSPARK_HOST}/api/login", allow_redirects=False)
+        auth_url = r0.headers.get("location")
+        if not auth_url:
+            return None
+
+        r1 = session.get(auth_url)
+        s1 = json.loads(re.search(r"var SETTINGS = ({.*?});", r1.text).group(1))
+        csrf = s1["csrf"]
+        tx = s1["transId"]
+        tenant = s1.get("hosts", {}).get("tenant", "/gensparkad.onmicrosoft.com/b2c_1_new_login")
+        policy = s1.get("hosts", {}).get("policy", "b2c_1_new_login")
+        b2c_base = f"https://login.genspark.ai{tenant}"
+
+        headers = {
+            "accept": "application/json, text/javascript, */*; q=0.01",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "origin": "https://login.genspark.ai",
+            "referer": r1.url,
+            "x-csrf-token": csrf,
+            "x-requested-with": "XMLHttpRequest",
+        }
+        r2 = session.post(
+            f"{b2c_base}/SelfAsserted?tx={tx}&p={policy}",
+            headers=headers,
+            data={"request_type": "RESPONSE", "email": email, "password": password},
+            timeout=15,
+        )
+        if r2.json().get("status") != "200":
+            return None
+
+        r3 = session.get(
+            f"{b2c_base}/api/CombinedSigninAndSignup/confirmed?rememberMe=false&csrf_token={csrf}&tx={tx}&p={policy}",
+            allow_redirects=False,
+            timeout=15,
+        )
+        loc = r3.headers.get("Location")
+        if not loc:
+            return None
+        session.get(loc, allow_redirects=True, timeout=15)
+
+        # Kredi bakiyesini sorgula
+        r_bal = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=10)
+        bal = r_bal.json().get("data", {}).get("balance", 0)
+        return session, bal
+    except Exception as e:
+        add_log(f"[-] Giriş denemesi hatası ({email}): {e}")
+        return None
+
+
+def auto_connect_latest_account():
+    """Başlangıçta genspark_hesaplar.txt dosyasındaki son hesabı otomatik bağlamayı dener."""
+    if not os.path.exists(ACCOUNTS_FILE):
+        return
+    try:
+        with open(ACCOUNTS_FILE, "r", encoding="utf-8") as f:
+            lines = [l.strip() for l in f if l.strip() and ":" in l]
+        if not lines:
+            return
+        last_line = lines[-1]
+        email, password = last_line.split(":", 1)
+        add_log(f"[*] Başlangıçta kayıtlı son hesap kontrol ediliyor: {email}...")
+        res = login_existing_account(email, password)
+        if res:
+            session, bal = res
+            with state_lock:
+                active_chat["session"] = session
+                active_chat["email"] = email
+                active_chat["balance"] = bal
+                active_chat["is_credit_exhausted"] = (bal <= 0)
+            add_log(f"[+] Başlangıç hesabı aktif: {email} ({bal} Kredi)")
+    except Exception as e:
+        add_log(f"[-] Otomatik son hesap bağlantı uyarısı: {e}")
+
+
 # ==============================================================================
 #  BÖLÜM 7: ARKA PLAN HESAP İŞÇİSİ
 # ==============================================================================
@@ -1040,6 +1122,30 @@ def api_download():
     )
 
 
+@app.route("/api/switch_account", methods=["POST"])
+def api_switch_account():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email")
+    password = data.get("password") or DEFAULT_PASSWORD
+    if not email:
+        return jsonify({"status": "error", "message": "E-posta belirtilmedi"}), 400
+
+    add_log(f"[*] Kullanıcı hesabı değiştiriliyor: {email}...")
+    res = login_existing_account(email, password)
+    if not res:
+        return jsonify({"status": "error", "message": "Bu hesaba giriş yapılamadı"}), 400
+
+    session, balance = res
+    with state_lock:
+        active_chat["session"] = session
+        active_chat["email"] = email
+        active_chat["balance"] = balance
+        active_chat["is_credit_exhausted"] = (balance <= 0)
+
+    add_log(f"[+] Hesap başarıyla aktif edildi: {email} ({balance} Kredi)")
+    return jsonify({"status": "success", "email": email, "balance": balance})
+
+
 # ==============================================================================
 #  BÖLÜM 9: GİRİŞ NOKTASI
 # ==============================================================================
@@ -1049,4 +1155,6 @@ if __name__ == "__main__":
     print("  GENSPARK AI - GEMINI 4 ARGON & HESAP YÖNETİCİSİ")
     print(f"  Adres: http://localhost:{port} (Tüm arayüzler: 0.0.0.0:{port})")
     print("=" * 60)
+    # Arka planda kayıtlı son hesabı kontrol et ve hazırla
+    threading.Thread(target=auto_connect_latest_account, daemon=True).start()
     app.run(host="0.0.0.0", port=port, debug=False)
