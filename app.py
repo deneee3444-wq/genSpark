@@ -944,6 +944,7 @@ def login_existing_account(email: str, password: str = DEFAULT_PASSWORD) -> Opti
         # Kredi bakiyesini sorgula
         r_bal = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=10)
         bal = r_bal.json().get("data", {}).get("balance", 0)
+        ensure_client_cookies(session)
         return session, bal
     except Exception as e:
         add_log(f"[-] Giriş denemesi hatası ({email}): {e}")
@@ -1139,10 +1140,28 @@ def api_chat():
 
             yield "data: [DONE]\n\n"
 
-        except CreditExhaustedError:
-            with state_lock:
-                active_chat["is_credit_exhausted"] = True
-            yield "data: [CREDIT_EXHAUSTED]\n\n"
+        except CreditExhaustedError as ce:
+            # Gerçekten kredi mi bitti? Bakiyeyi doğrula (consume_usage_quota_exceeded false positive olabilir)
+            real_exhausted = True
+            try:
+                r_chk = session.get(f"{GENSPARK_HOST}/api/payment/get_credit_balance?surface=super_agent", timeout=5)
+                if r_chk.status_code == 200:
+                    real_bal = r_chk.json().get("data", {}).get("balance", 0)
+                    if real_bal > 0:
+                        real_exhausted = False
+                        add_log(f"[!] Geçici kota uyarısı alındı ama bakiye hâlâ {real_bal}. Yeni hesap açılmayacak.")
+                        with state_lock:
+                            active_chat["balance"] = real_bal
+            except Exception:
+                pass
+
+            if real_exhausted:
+                with state_lock:
+                    active_chat["is_credit_exhausted"] = True
+                yield "data: [CREDIT_EXHAUSTED]\n\n"
+            else:
+                yield f"data: {json.dumps({'delta': f' [UYARI: Genspark geçici kullanım kotası aşıldı (Bakiye: {real_bal}). Birkaç saniye bekleyip tekrar deneyin.]'})}\n\n"
+                yield "data: [DONE]\n\n"
 
         except Exception as e:
             yield f"data: {json.dumps({'delta': f' [HATA: {e}]'})}\n\n"
