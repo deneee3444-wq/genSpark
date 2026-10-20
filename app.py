@@ -64,6 +64,68 @@ PB_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 PB_BASE_URL = "https://esndhpasoxrwzxpzjlfg.supabase.co"
 PB_DEFAULT_PASSWORD = "SifreniYaz123!"
 
+# ==============================================================================
+#  RESMİ ÖNYÜZ MODELLERİ (GENSPARK FRONTEND MODELS)
+# ==============================================================================
+FRONTEND_MODELS = [
+    # Anthropic
+    {"id": "claude-haiku-5-5", "name": "Claude Haiku 5.5", "provider": "Anthropic", "multiplier": "0.1x"},
+    {"id": "claude-opus-4-7", "name": "Claude Opus 4.7", "provider": "Anthropic", "multiplier": "5x"},
+    {"id": "claude-opus-4-8", "name": "Claude Opus 4.8", "provider": "Anthropic", "multiplier": "5x"},
+    {"id": "claude-opus-5", "name": "Claude Opus 5", "provider": "Anthropic", "multiplier": "5x"},
+    {"id": "claude-opus-5-5", "name": "Claude Opus 5.5", "provider": "Anthropic", "multiplier": "4x"},
+    {"id": "claude-sonnet-5", "name": "Claude Sonnet 5", "provider": "Anthropic", "multiplier": "2x"},
+    {"id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5", "provider": "Anthropic", "multiplier": "2x"},
+
+    # DeepSeek
+    {"id": "deep-seek-v4.1-flash", "name": "DeepSeek V4.1 Flash", "provider": "DeepSeek", "multiplier": "0.3x"},
+
+    # Google
+    {"id": "gemini-3.6-flash", "name": "Gemini 3.6 Flash", "provider": "Google", "multiplier": "0.75x"},
+    {"id": "gemini-3.7-flash", "name": "Gemini 3.7 Flash", "provider": "Google", "multiplier": "0.75x"},
+    {"id": "gemini-3.8-flash", "name": "Gemini 3.8 Flash", "provider": "Google", "multiplier": "0.75x"},
+    {"id": "gemini-4-argon", "name": "Gemini 4 Argon", "provider": "Google", "multiplier": "2x"},
+
+    # Kimi
+    {"id": "kimi-k3", "name": "Kimi K3", "provider": "Kimi", "multiplier": "3x"},
+
+    # Meta
+    {"id": "muse-spark-open", "name": "Muse Spark Open", "provider": "Meta", "multiplier": "1x"},
+    {"id": "muse-wonder", "name": "Muse Wonder", "provider": "Meta", "multiplier": "4x"},
+
+    # MiniMax
+    {"id": "minimax-m3", "name": "Minimax M3", "provider": "MiniMax", "multiplier": "0.3x"},
+
+    # NVIDIA
+    {"id": "nemotron-3-ultra", "name": "Nemotron 3 Ultra", "provider": "NVIDIA", "multiplier": "0.6x"},
+    {"id": "nemotron-3.5-super-vl", "name": "Nemotron 3.5 Super VL", "provider": "NVIDIA", "multiplier": "0.2x"},
+
+    # OpenAI
+    {"id": "gpt-5.4", "name": "GPT-5.4", "provider": "OpenAI", "multiplier": "3x"},
+    {"id": "gpt-5.5", "name": "GPT-5.5", "provider": "OpenAI", "multiplier": "5x"},
+    {"id": "gpt-5.6-luna", "name": "GPT-5.6 Luna", "provider": "OpenAI", "multiplier": "0.2x"},
+    {"id": "gpt-5.6-sol", "name": "GPT-5.6 Sol", "provider": "OpenAI", "multiplier": "4x"},
+    {"id": "gpt-5.6-terra", "name": "GPT-5.6 Terra", "provider": "OpenAI", "multiplier": "2x"},
+    {"id": "gpt-6-luna", "name": "GPT-6 Luna", "provider": "OpenAI", "multiplier": "0.1x"},
+    {"id": "gpt-6-sol", "name": "GPT-6 Sol", "provider": "OpenAI", "multiplier": "2x"},
+    {"id": "gpt-6.1-sol", "name": "GPT-6.1 Sol", "provider": "OpenAI", "multiplier": "2x"},
+
+    # xAI
+    {"id": "grok-4.6", "name": "Grok 4.6", "provider": "xAI", "multiplier": "2x"},
+    {"id": "grok-4.7", "name": "Grok 4.7", "provider": "xAI", "multiplier": "2x"},
+
+    # Xiaomi
+    {"id": "mimo-v2.6-flash", "name": "MiMo V2.6 Flash", "provider": "Xiaomi", "multiplier": "0.14x"},
+    {"id": "mimo-v2.6-pro", "name": "MiMo V2.6 Pro", "provider": "Xiaomi", "multiplier": "0.435x"},
+
+    # ZhipuAI
+    {"id": "glm-5p3", "name": "GLM-5.3", "provider": "ZhipuAI", "multiplier": "1x"},
+    {"id": "glm-5p3-flash-baseten", "name": "GLM-5.3 Flash", "provider": "ZhipuAI", "multiplier": "0.15x"},
+
+    # Genspark Ensemble
+    {"id": "moa", "name": "Mixture-of-Agents", "provider": "Genspark", "multiplier": "Auto", "is_moa": True},
+]
+
 
 # ==============================================================================
 #  BÖLÜM 2: GLOBAL İŞ DURUMU & OTURUM HAFIZASI
@@ -818,12 +880,17 @@ def stream_genspark_chat(
         "x-timezone": "Europe/Istanbul",
     }
 
+    # Mixture-of-Agents (MoA) özel parametreleri
+    is_moa = model.lower() in ["moa", "mixture-of-agents"]
+    api_model = "gpt-5.6-luna" if is_moa else model
+    moa_models = ["gpt-5.6-luna", "gpt-6.1-sol", "gemini-3.7-flash"] if is_moa else []
+
     payload = {
-        "ai_chat_model": model,
+        "ai_chat_model": api_model,
         "ai_chat_enable_search": True,
         "ai_chat_disable_personalization": False,
-        "use_moa_proxy": False,
-        "moa_models": [],
+        "use_moa_proxy": is_moa,
+        "moa_models": moa_models,
         "writingContent": None,
         "sas_ask_origin": "typed",
         "type": "ai_chat",
@@ -1119,10 +1186,16 @@ def api_status():
         return jsonify(job_state)
 
 
+@app.route("/api/models", methods=["GET"])
+def api_models():
+    return jsonify({"status": "ok", "models": FRONTEND_MODELS})
+
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     data = request.get_json(silent=True) or {}
     user_prompt = data.get("message", "").strip()
+    selected_model = data.get("model", "gemini-4-argon").strip() or "gemini-4-argon"
     if not user_prompt:
         return jsonify({"status": "error", "message": "Boş mesaj gönderilemez"}), 400
 
@@ -1142,7 +1215,7 @@ def api_chat():
             nonlocal session
             streamed = False
             try:
-                for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history):
+                for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history, model=selected_model):
                     streamed = True
                     full_reply += delta
                     yield f"data: {json.dumps({'delta': delta})}\n\n"
@@ -1152,7 +1225,7 @@ def api_chat():
                     refreshed = reauth_active_session()
                     if refreshed:
                         session = refreshed
-                        for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history):
+                        for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history, model=selected_model):
                             streamed = True
                             full_reply += delta
                             yield f"data: {json.dumps({'delta': delta})}\n\n"
