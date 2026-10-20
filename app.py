@@ -837,13 +837,22 @@ def stream_genspark_chat(
     ask_url = f"{GENSPARK_HOST}/api/agent/ask_proxy"
     res = session.post(ask_url, headers=headers, json=payload, stream=True, timeout=60)
 
-    if res.status_code in [401, 403]:
-        # Oturum geçersiz veya Cloudflare koruması (Kredi tükenmesi değil!)
-        raise GensparkSessionError(f"Genspark oturumu geçersiz veya Cloudflare engeline takıldı (HTTP {res.status_code}).")
-    elif res.status_code == 429:
-        raise RuntimeError("Genspark istek hız sınırı aşıldı (HTTP 429). Lütfen birkaç saniye bekleyin.")
-    elif res.status_code != 200:
-        raise RuntimeError(f"Genspark ask_proxy sunucu hatası (HTTP {res.status_code})")
+    if res.status_code != 200:
+        err_snippet = ""
+        try:
+            err_snippet = res.text[:300].strip()
+        except Exception:
+            try:
+                err_snippet = res.content[:300].decode("utf-8", errors="replace").strip()
+            except Exception:
+                pass
+        add_log(f"[-] ask_proxy HTTP {res.status_code} hatası! Yanıt: {err_snippet}")
+        if res.status_code in [401, 403]:
+            raise GensparkSessionError(f"HTTP {res.status_code} - Sunucu yanıtı: {err_snippet or 'Genspark yetkilendirme reddedildi'}")
+        elif res.status_code == 429:
+            raise RuntimeError(f"HTTP 429 İstek Hız Sınırı: {err_snippet}")
+        else:
+            raise RuntimeError(f"HTTP {res.status_code} Sunucu Hatası: {err_snippet}")
 
     streamed_any = False
     for raw_line in res.iter_lines():
