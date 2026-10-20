@@ -25,6 +25,7 @@ from typing import Optional, Tuple, Dict, List, Generator
 
 import requests as py_requests
 from curl_cffi import requests as cffi_requests
+from curl_cffi.curl import CurlOpt
 import websocket
 from flask import Flask, jsonify, request, Response, render_template, stream_with_context
 
@@ -829,6 +830,10 @@ def stream_genspark_chat(
         "chat_session_id": None,
     }
 
+    session.curl_options = {
+        CurlOpt.FORBID_REUSE: 1,
+        CurlOpt.FRESH_CONNECT: 1,
+    }
     ask_url = f"{GENSPARK_HOST}/api/agent/ask_proxy"
     res = session.post(ask_url, headers=headers, json=payload, stream=True, timeout=60)
 
