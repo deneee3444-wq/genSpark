@@ -513,10 +513,17 @@
             z-index: 10;
         }
 
-        .topbar-left, .topbar-right {
+        .topbar-left {
             display: flex;
             align-items: center;
             gap: 14px;
+            min-width: 0;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             min-width: 0;
         }
 
@@ -562,16 +569,19 @@
         .topbar-divider { width: 1px; height: 20px; background: var(--line); }
 
         .credit-pill {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 10px;
+            height: 32px;
+            padding: 0 10px;
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 9px;
             color: var(--text-secondary);
             font-size: 11px;
             box-shadow: var(--shadow-sm);
+            box-sizing: border-box;
+            flex-shrink: 0;
         }
 
         .credit-pill .icon { width: 13px; height: 13px; color: var(--yellow); }
@@ -580,6 +590,28 @@
             color: var(--text);
             font-weight: 650;
             font-variant-numeric: tabular-nums;
+        }
+
+        .topbar-right .icon-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            transition: all .18s var(--ease);
+            flex-shrink: 0;
+        }
+
+        .topbar-right .icon-button:hover {
+            background: var(--surface-hover);
+            border-color: var(--line-strong);
+            color: var(--text);
         }
 
         /* =========================================================
@@ -1050,15 +1082,56 @@
         }
 
         /* =========================================================
-           CUSTOM MODERN MODEL COMBOBOX
+           CUSTOM MODERN MODEL COMBOBOX & COMPOSER ACTIONS
         ========================================================= */
+        .composer-left-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 0;
+        }
+
+        .composer-attach-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all .18s var(--ease);
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .composer-attach-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--line-strong);
+            color: var(--text);
+        }
+
+        .composer-attach-btn:active {
+            transform: scale(.96);
+        }
+
+        .composer-attach-btn .icon {
+            width: 15px;
+            height: 15px;
+            display: block;
+        }
+
         .model-combobox-wrap { position: relative; user-select: none; }
 
         .model-combobox-btn {
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            padding: 4px 10px 4px 8px;
+            height: 32px;
+            padding: 0 11px 0 9px;
             background: var(--surface-soft);
             border: 1px solid var(--line);
             border-radius: 9px;
@@ -1068,6 +1141,7 @@
             cursor: pointer;
             transition: all .18s var(--ease);
             font-family: inherit;
+            box-sizing: border-box;
         }
 
         .model-combobox-btn:hover {
@@ -1080,6 +1154,150 @@
             background: var(--surface);
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        /* =========================================================
+           STAGED ATTACHMENT CHIPS & UPLOAD PREVIEWS
+        ========================================================= */
+        .staged-chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            padding-bottom: 9px;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--line);
+            max-height: 110px;
+            overflow-y: auto;
+        }
+
+        .staged-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 4px 8px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-size: 11px;
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
+            max-width: 260px;
+            box-sizing: border-box;
+            animation: fadeIn .15s ease-out;
+        }
+
+        .staged-chip.uploading {
+            opacity: .8;
+            background: var(--surface-soft);
+        }
+
+        .staged-chip-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--line);
+        }
+
+        .staged-chip-icon {
+            width: 15px;
+            height: 15px;
+            color: var(--accent);
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .staged-chip-icon .icon { width: 14px; height: 14px; }
+
+        .staged-chip-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            line-height: 1.25;
+        }
+
+        .staged-chip-name {
+            font-size: 11px;
+            font-weight: 550;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .staged-chip-meta {
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .staged-chip-remove {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            margin-left: 2px;
+            flex-shrink: 0;
+            transition: color .15s, background .15s;
+        }
+
+        .staged-chip-remove:hover {
+            color: var(--red);
+            background: var(--surface-soft);
+        }
+
+        .staged-chip-spinner {
+            width: 13px;
+            height: 13px;
+            border: 2px solid var(--line);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        /* User Message Attachments */
+        .user-msg-attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .user-msg-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 9px;
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .25);
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 500;
+            color: inherit;
+            max-width: 280px;
+        }
+
+        .user-msg-chip .icon { width: 13px; height: 13px; flex-shrink: 0; }
+
+        .user-msg-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .user-msg-chip span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .model-btn-icon .icon {
@@ -1859,12 +2077,13 @@
                 gap: 6px;
             }
 
-            .topbar-left, .topbar-right { gap: 3px; }
+            .topbar-left { gap: 6px; }
+            .topbar-right { gap: 6px; }
             .model-label { gap: 5px; font-size: 11px; }
             .model-edition { padding: 3px 4px; font-size: 7px; }
-            .credit-pill { gap: 4px; padding: 6px 8px; font-size: 10px; }
+            .credit-pill { height: 30px; padding: 0 8px; font-size: 10px; }
             .credit-pill .credit-word { display: none; }
-            .topbar-right > .icon-button { width: 31px; height: 34px; }
+            .topbar-right > .icon-button { width: 30px; height: 30px; border-radius: 8px; }
 
             .chat-scroll {
                 padding: 15px 20px 26px;
@@ -2003,12 +2222,20 @@
 
         .theme-toggle {
             position: relative;
+            width: 32px;
+            height: 32px;
             border: 1px solid var(--line);
             background: var(--surface);
+            border-radius: 9px;
             box-shadow: var(--shadow-sm);
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .theme-toggle .icon { width: 17px; height: 17px; }
+        .theme-toggle .icon { width: 15px; height: 15px; }
         .theme-toggle .theme-sun { display: none; }
         .theme-toggle .theme-moon { display: block; }
 
@@ -2252,6 +2479,9 @@
             <symbol id="i-moon" viewBox="0 0 24 24">
                 <path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/>
             </symbol>
+            <symbol id="i-paperclip" viewBox="0 0 24 24">
+                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.88-7.88"/>
+            </symbol>
         </defs>
     </svg>
 
@@ -2398,6 +2628,9 @@
         <div class="dock">
             <div class="composer-area">
                 <div class="input-wrap">
+                    <!-- Hazırda bekleyen dosya / medya ekleri -->
+                    <div class="staged-chips-container" id="stagedChipsContainer" style="display:none;"></div>
+
                     <label class="sr-only" for="chatInput">Mesajınız</label>
                     <textarea
                         id="chatInput"
@@ -2408,23 +2641,31 @@
                     ></textarea>
 
                     <div class="composer-toolbar">
-                        <!-- Custom Modern Model Combobox -->
-                        <div class="model-combobox-wrap" id="modelComboboxWrap">
-                            <button type="button" class="model-combobox-btn" id="modelComboboxBtn" onclick="toggleModelDropdown(event)" aria-haspopup="listbox" aria-expanded="false" title="Model Değiştir">
-                                <span class="model-btn-icon"><svg class="icon"><use href="#i-spark"/></svg></span>
-                                <span class="model-btn-name" id="selectedModelLabel">Gemini 4 Argon</span>
-                                <span class="model-btn-badge" id="selectedModelBadge">2x</span>
-                                <svg class="icon chevron-icon"><use href="#i-arrow-down"/></svg>
+                        <div class="composer-left-actions">
+                            <!-- Dosya / Medya Seçme Butonu (Model kutusunun hemen solunda) -->
+                            <button type="button" class="composer-attach-btn" id="attachBtn" onclick="triggerFileInput()" title="Dosya veya Medya Yükle (Görsel, Video, Ses, Belge, Kod)">
+                                <svg class="icon"><use href="#i-paperclip"/></svg>
                             </button>
+                            <input type="file" id="composerFileInput" multiple style="display:none;" onchange="handleFileSelect(event)">
 
-                            <div class="model-dropdown" id="modelDropdown" role="listbox">
-                                <div class="model-dropdown-header">
-                                    <div class="model-search-box">
-                                        <svg class="icon"><use href="#i-spark"/></svg>
-                                        <input type="text" id="modelSearchInput" placeholder="Model ara (örn: Claude, Grok, GPT)..." oninput="filterModels(this.value)" autocomplete="off">
+                            <!-- Custom Modern Model Combobox -->
+                            <div class="model-combobox-wrap" id="modelComboboxWrap">
+                                <button type="button" class="model-combobox-btn" id="modelComboboxBtn" onclick="toggleModelDropdown(event)" aria-haspopup="listbox" aria-expanded="false" title="Model Değiştir">
+                                    <span class="model-btn-icon"><svg class="icon"><use href="#i-spark"/></svg></span>
+                                    <span class="model-btn-name" id="selectedModelLabel">Gemini 4 Argon</span>
+                                    <span class="model-btn-badge" id="selectedModelBadge">2x</span>
+                                    <svg class="icon chevron-icon"><use href="#i-arrow-down"/></svg>
+                                </button>
+
+                                <div class="model-dropdown" id="modelDropdown" role="listbox">
+                                    <div class="model-dropdown-header">
+                                        <div class="model-search-box">
+                                            <svg class="icon"><use href="#i-spark"/></svg>
+                                            <input type="text" id="modelSearchInput" placeholder="Model ara (örn: Claude, Grok, GPT)..." oninput="filterModels(this.value)" autocomplete="off">
+                                        </div>
                                     </div>
+                                    <div class="model-dropdown-list" id="modelDropdownList"></div>
                                 </div>
-                                <div class="model-dropdown-list" id="modelDropdownList"></div>
                             </div>
                         </div>
 
@@ -2936,11 +3177,21 @@
             sendMessage();
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function removeHero() {
             $('hero')?.remove();
         }
 
-        function addUserMsg(text) {
+        function addUserMsg(text, attachments = []) {
             removeHero();
 
             const message = document.createElement('article');
@@ -2952,7 +3203,32 @@
 
             const bubble = document.createElement('div');
             bubble.className = 'msg-bubble';
-            bubble.textContent = text;
+
+            if (attachments && attachments.length > 0) {
+                const attContainer = document.createElement('div');
+                attContainer.className = 'user-msg-attachments';
+                attachments.forEach(att => {
+                    const info = att._local_info || att.private_file || {};
+                    const isImg = att.type === 'image_url' || (info.type === 'image');
+                    const chip = document.createElement('div');
+                    chip.className = 'user-msg-chip';
+                    const nameStr = escapeHtml(info.name || 'Ek');
+                    if (isImg && att.image_url && att.image_url.url) {
+                        chip.innerHTML = `<img src="${att.image_url.url}" class="user-msg-thumb" alt="${nameStr}"><span>${nameStr}</span>`;
+                    } else {
+                        chip.innerHTML = `<svg class="icon"><use href="#i-paperclip"/></svg><span>${nameStr}</span>`;
+                    }
+                    attContainer.appendChild(chip);
+                });
+                bubble.appendChild(attContainer);
+            }
+
+            if (text) {
+                const textSpan = document.createElement('div');
+                textSpan.className = 'user-msg-text';
+                textSpan.textContent = text;
+                bubble.appendChild(textSpan);
+            }
 
             content.appendChild(bubble);
             message.appendChild(content);
@@ -3212,13 +3488,164 @@
         }, { passive: true });
 
         /* ---------------------------------------------------------
+           ATTACHMENT & MEDIA UPLOAD MOTORU
+        --------------------------------------------------------- */
+        let stagedAttachments = [];
+
+        function triggerFileInput() {
+            const input = $('composerFileInput');
+            if (input) {
+                input.value = '';
+                input.click();
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        async function handleFileSelect(e) {
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+            await uploadFiles(files);
+        }
+
+        async function uploadFiles(files) {
+            for (const file of files) {
+                const tempId = 'chip_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+                const isImg = file.type.startsWith('image/');
+                let previewUrl = null;
+                if (isImg) {
+                    previewUrl = URL.createObjectURL(file);
+                }
+
+                const item = {
+                    id: tempId,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    status: 'uploading',
+                    previewUrl: previewUrl,
+                    attachment: null,
+                    error: null
+                };
+
+                stagedAttachments.push(item);
+                renderStagedChips();
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const resp = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await resp.json();
+                    if (resp.ok && data.status === 'ok') {
+                        item.status = 'ready';
+                        item.attachment = data.attachment;
+                    } else {
+                        item.status = 'error';
+                        item.error = data.message || 'Yükleme başarısız';
+                        showToast(item.error, 'error');
+                    }
+                } catch (err) {
+                    item.status = 'error';
+                    item.error = err.message || 'Ağ hatası';
+                    showToast('Dosya yüklenemedi: ' + item.error, 'error');
+                }
+                renderStagedChips();
+            }
+        }
+
+        function removeStagedFile(id) {
+            stagedAttachments = stagedAttachments.filter(item => item.id !== id);
+            renderStagedChips();
+        }
+
+        function renderStagedChips() {
+            const container = $('stagedChipsContainer');
+            if (!container) return;
+
+            if (!stagedAttachments.length) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+
+            container.style.display = 'flex';
+            let html = '';
+            stagedAttachments.forEach(item => {
+                const isImg = item.previewUrl || (item.type && item.type.startsWith('image/'));
+                const sizeStr = formatBytes(item.size);
+
+                html += `<div class="staged-chip ${item.status === 'uploading' ? 'uploading' : ''}" id="${item.id}">`;
+
+                if (item.status === 'uploading') {
+                    html += `<span class="staged-chip-spinner"></span>`;
+                } else if (isImg && item.previewUrl) {
+                    html += `<img src="${item.previewUrl}" class="staged-chip-thumb" alt="${escapeHtml(item.name)}">`;
+                } else {
+                    html += `<span class="staged-chip-icon"><svg class="icon"><use href="#i-paperclip"/></svg></span>`;
+                }
+
+                html += `
+                    <div class="staged-chip-info">
+                        <span class="staged-chip-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
+                        <span class="staged-chip-meta">${item.status === 'uploading' ? 'Yükleniyor...' : (item.status === 'error' ? 'Hata!' : sizeStr)}</span>
+                    </div>
+                    <button type="button" class="staged-chip-remove" onclick="removeStagedFile('${item.id}')" title="Kaldır">
+                        <svg class="icon" style="width:11px;height:11px;"><use href="#i-close"/></svg>
+                    </button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // Pano (Clipboard) üzerinden görsel / dosya yapıştırma desteği
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = $('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('paste', (e) => {
+                    const items = e.clipboardData && e.clipboardData.items;
+                    if (!items) return;
+                    const files = [];
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].kind === 'file') {
+                            const f = items[i].getAsFile();
+                            if (f) files.push(f);
+                        }
+                    }
+                    if (files.length > 0) {
+                        uploadFiles(files);
+                    }
+                });
+            }
+        });
+
+        /* ---------------------------------------------------------
            CHAT REQUEST / STREAM
         --------------------------------------------------------- */
         async function sendMessage() {
             const input = $('chatInput');
             const text = input.value.trim();
 
-            if (!text || isGenerating) return;
+            const isUploading = stagedAttachments.some(item => item.status === 'uploading');
+            if (isUploading) {
+                showToast('Dosyalar henüz yükleniyor, lütfen bekleyin...', 'info');
+                return;
+            }
+
+            const readyAttachments = stagedAttachments
+                .filter(item => item.status === 'ready' && item.attachment)
+                .map(item => item.attachment);
+
+            if ((!text && readyAttachments.length === 0) || isGenerating) return;
 
             const version = chatVersion;
             const controller = new AbortController();
@@ -3227,7 +3654,10 @@
             input.value = '';
             input.style.height = 'auto';
 
-            addUserMsg(text);
+            addUserMsg(text, readyAttachments);
+
+            stagedAttachments = [];
+            renderStagedChips();
 
             isGenerating = true;
             shouldFollowStream = true;
@@ -3278,7 +3708,7 @@
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, model: currentModelId }),
+                    body: JSON.stringify({ message: text, model: currentModelId, attachments: readyAttachments }),
                     signal: controller.signal
                 });
 
