@@ -21,6 +21,7 @@ import string
 import ssl
 import threading
 import datetime
+import mimetypes
 from typing import Optional, Tuple, Dict, List, Generator
 
 import requests as py_requests
@@ -832,13 +833,110 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
 
 
 # ==============================================================================
-#  BÖLÜM 6: GEMINI 4 ARGON STREAM & SOHBET MOTORU
+#  BÖLÜM 6: DOSYA / MEDYA YÜKLEME VE İŞLEME MOTORU
+# ==============================================================================
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+
+def process_uploaded_file(file_name: str, file_bytes: bytes, mime: Optional[str] = None) -> dict:
+    """
+    Kullanıcı tarafından yüklenen dosya veya medyayı Genspark formatına dönüştürür:
+    - Görseller (<= 15MB): base64 image_url üretir.
+    - Diğer dosyalar (mp4, mp3, pdf, txt, py, zip vb.): Genspark Azure Blob'a yükleyip private_file üretir.
+    """
+    clean_name = os.path.basename(file_name)
+    ext_with_dot = os.path.splitext(clean_name)[1].lower()
+    ext = ext_with_dot.lstrip(".") or "bin"
+    file_size = len(file_bytes)
+
+    if not mime or mime == "application/octet-stream":
+        guessed_mime, _ = mimetypes.guess_type(clean_name)
+        if guessed_mime:
+            mime = guessed_mime
+        elif ext in ["txt", "py", "json", "js", "html", "css", "md", "csv", "xml"]:
+            mime = "text/plain"
+        elif ext in ["mp4", "webm", "mkv"]:
+            mime = "video/mp4"
+        elif ext in ["mp3", "wav", "ogg", "m4a"]:
+            mime = "audio/mpeg"
+        elif ext == "pdf":
+            mime = "application/pdf"
+        else:
+            mime = "application/octet-stream"
+
+    # 1. Görsel Dosyası -> Base64 image_url
+    if ext_with_dot in IMAGE_EXTENSIONS and file_size <= 15 * 1024 * 1024:
+        b64_data = base64.b64encode(file_bytes).decode("ascii")
+        img_mime = mime if mime.startswith("image/") else "image/png"
+        return {
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:{img_mime};base64,{b64_data}"
+            },
+            "_local_info": {"name": clean_name, "size": file_size, "type": "image"}
+        }
+
+    # 2. Dosya / Video / Ses / Belge -> Genspark Azure Blob Yüklemesi
+    with state_lock:
+        session = active_chat.get("session")
+
+    if not session:
+        session = auto_connect_latest_account()
+    if not session:
+        session = reauth_active_session()
+        if not session:
+            raise RuntimeError("Aktif Genspark oturumu bulunamadı. Lütfen önce hesap açın.")
+
+    params = {
+        "content_type": mime,
+        "name": clean_name,
+        "long_lived": "true",
+    }
+    proxies = get_proxies()
+    r = session.get(f"{GENSPARK_HOST}/api/files/get_upload_url", params=params, proxies=proxies, timeout=25)
+    if r.status_code != 200:
+        raise RuntimeError(f"Genspark get_upload_url hatası (HTTP {r.status_code}): {r.text[:200]}")
+
+    res_json = r.json()
+    if res_json.get("status") != 0:
+        raise RuntimeError(f"Genspark get_upload_url başarısız: {res_json.get('message')}")
+
+    data = res_json["data"]
+    upload_url = data["upload_url"]
+    file_wrapper_url = data["file_wrapper_url"]
+
+    azure_headers = {
+        "x-ms-blob-type": "BlockBlob",
+        "Content-Type": mime,
+    }
+    r_put = py_requests.put(upload_url, data=file_bytes, headers=azure_headers, proxies=proxies, timeout=120)
+    if r_put.status_code not in [200, 201]:
+        raise RuntimeError(f"Azure Blob yükleme hatası (HTTP {r_put.status_code}): {r_put.text[:200]}")
+
+    chip_id = int(time.time() * 1000)
+    return {
+        "type": "private_file",
+        "private_file": {
+            "name": clean_name,
+            "type": mime,
+            "size": file_size,
+            "ext": ext,
+            "uploadProgress": 1,
+            "localId": f"file_chip_{chip_id}",
+            "private_storage_url": file_wrapper_url,
+        },
+        "_local_info": {"name": clean_name, "size": file_size, "type": "file"}
+    }
+
+
+# ==============================================================================
+#  BÖLÜM 7: ÇOKLU MODEL DESTEKLİ CANLI SSE SOHBET MOTORU
 # ==============================================================================
 def stream_genspark_chat(
     session: cffi_requests.Session,
     user_prompt: str,
     history: Optional[List[Dict]] = None,
     model: str = "gemini-4-argon",
+    attachments: Optional[List[dict]] = None,
 ) -> Generator[str, None, None]:
     """Genspark ask_proxy endpoint'i üzerinden canlı SSE sohbet yanıtı üretir."""
     if history is None:
@@ -856,13 +954,20 @@ def stream_genspark_chat(
             "content": h.get("content", ""),
             "pending": False,
             "sendStatus": "success",
-            "_deepDiveStateNegContent": h.get("content", ""),
+            "_deepDiveStateNegContent": h.get("content", "") if isinstance(h.get("content"), str) else "",
         })
+
+    # Ekler (dosyalar/görseller) varsa list content oluştur
+    if attachments:
+        clean_attachments = [{k: v for k, v in att.items() if not k.startswith("_")} for att in attachments]
+        user_content = clean_attachments + [{"type": "text", "text": user_prompt}]
+    else:
+        user_content = user_prompt
 
     messages_payload.append({
         "role": "user",
         "id": msg_id,
-        "content": user_prompt,
+        "content": user_content,
         "pending": True,
         "sendStatus": "sending",
         "_deepDiveStateNegContent": user_prompt,
@@ -1100,8 +1205,10 @@ def auto_connect_latest_account():
                 active_chat["balance"] = bal
                 active_chat["is_credit_exhausted"] = (bal <= 0)
             add_log(f"[+] Başlangıç hesabı aktif: {email} ({bal} Kredi)")
+            return session
     except Exception as e:
         add_log(f"[-] Otomatik son hesap bağlantı uyarısı: {e}")
+    return None
 
 
 # ==============================================================================
@@ -1191,17 +1298,62 @@ def api_models():
     return jsonify({"status": "ok", "models": FRONTEND_MODELS})
 
 
+@app.route("/api/upload", methods=["POST"])
+def api_upload():
+    """
+    Kullanıcı arayüzünden veya yerel dosya yolundan gelen medya/dosyaları yükler.
+    Görseller için base64, diğer dosyalar için Azure Blob SAS yüklemesi yapar.
+    """
+    try:
+        # 1. FormData ile dosya yüklendiyse
+        if "file" in request.files:
+            f = request.files["file"]
+            if not f or not f.filename:
+                return jsonify({"status": "error", "message": "Geçerli bir dosya seçilmedi."}), 400
+            file_name = f.filename
+            file_bytes = f.read()
+            mime = f.content_type
+            attachment = process_uploaded_file(file_name, file_bytes, mime)
+            return jsonify({"status": "ok", "attachment": attachment})
+
+        # 2. JSON olarak dosya yolu geldiyse (terminal / yerel path için)
+        data = request.get_json(silent=True) or {}
+        raw_path = data.get("path", "").strip().strip("'\"")
+        if raw_path:
+            clean_path = os.path.abspath(raw_path) if not os.path.isabs(raw_path) else raw_path
+            if not os.path.exists(clean_path):
+                return jsonify({"status": "error", "message": f"Dosya bulunamadı: {clean_path}"}), 404
+            file_name = os.path.basename(clean_path)
+            with open(clean_path, "rb") as fp:
+                file_bytes = fp.read()
+            attachment = process_uploaded_file(file_name, file_bytes)
+            return jsonify({"status": "ok", "attachment": attachment})
+
+        return jsonify({"status": "error", "message": "Yüklenecek dosya veya yol belirtilmedi."}), 400
+    except Exception as e:
+        add_log(f"[!] Dosya yükleme hatası: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     data = request.get_json(silent=True) or {}
     user_prompt = data.get("message", "").strip()
     selected_model = data.get("model", "gemini-4-argon").strip() or "gemini-4-argon"
-    if not user_prompt:
-        return jsonify({"status": "error", "message": "Boş mesaj gönderilemez"}), 400
+    attachments = data.get("attachments", []) or []
+
+    if not user_prompt and not attachments:
+        return jsonify({"status": "error", "message": "Boş mesaj veya dosya gönderilemez"}), 400
+
+    if not user_prompt and attachments:
+        user_prompt = "Bu ekli dosyayı incele ve açıkla."
 
     with state_lock:
         session = active_chat.get("session")
         history = list(active_chat.get("history", []))
+
+    if not session:
+        session = auto_connect_latest_account()
 
     if not session:
         return jsonify({
@@ -1215,7 +1367,7 @@ def api_chat():
             nonlocal session
             streamed = False
             try:
-                for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history, model=selected_model):
+                for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history, model=selected_model, attachments=attachments):
                     streamed = True
                     full_reply += delta
                     yield f"data: {json.dumps({'delta': delta})}\n\n"
@@ -1225,7 +1377,7 @@ def api_chat():
                     refreshed = reauth_active_session()
                     if refreshed:
                         session = refreshed
-                        for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history, model=selected_model):
+                        for delta in stream_genspark_chat(session, user_prompt=user_prompt, history=history, model=selected_model, attachments=attachments):
                             streamed = True
                             full_reply += delta
                             yield f"data: {json.dumps({'delta': delta})}\n\n"
@@ -1237,7 +1389,16 @@ def api_chat():
             # Başarıyla tamamlandı, geçmişe ekle
             if full_reply.strip() and not full_reply.startswith("[HATA]"):
                 with state_lock:
-                    active_chat["history"].append({"role": "user", "content": user_prompt})
+                    history_content = user_prompt
+                    if attachments:
+                        att_names = []
+                        for a in attachments:
+                            info = a.get("_local_info") or a.get("private_file", {})
+                            name = info.get("name") or "ek"
+                            att_names.append(name)
+                        if att_names:
+                            history_content = f"[Ekler: {', '.join(att_names)}]\n{user_prompt}"
+                    active_chat["history"].append({"role": "user", "content": history_content})
                     active_chat["history"].append({"role": "assistant", "content": full_reply})
 
                 # Canlı bakiyeyi güncelle
