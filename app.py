@@ -69,7 +69,7 @@ FLASK_ACCOUNTS_FILE = ACCOUNTS_FILE
 ROOT_ACCOUNTS_FILE = os.path.join(os.path.dirname(BASE_DIR), "genspark_hesaplar.txt")
 
 # Proxy Ayarı: 0 -> Kapalı (Doğrudan bağlantı), 1 -> Açık (Proxy üzerinden)
-PROXY_MODE = int(os.environ.get("PROXY_MODE", 0))
+PROXY_MODE = int(os.environ.get("PROXY_MODE", 1))
 PROXY_URL = os.environ.get("PROXY_URL", "http://tghpxuwn:dxrsnpsyz3df@198.23.243.226:6361")
 
 def get_proxies() -> Optional[Dict[str, str]]:
