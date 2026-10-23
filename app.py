@@ -459,12 +459,28 @@ class TempMailNinja:
         last_err = None
         for attempt in range(1, retries + 1):
             try:
+                proxy_options = {}
+                if PROXY_MODE == 1 and PROXY_URL:
+                    p = urllib.parse.urlparse(PROXY_URL)
+                    proxy_options = {
+                        "http_proxy_host": p.hostname,
+                        "http_proxy_port": p.port or 80,
+                        "proxy_type": "http",
+                    }
+                    if p.username is not None:
+                        proxy_options["http_proxy_auth"] = (
+                            urllib.parse.unquote(p.username),
+                            urllib.parse.unquote(p.password or ""),
+                        )
+
                 self.ws = websocket.create_connection(
                     self.ws_url,
                     header=self.headers,
                     sslopt={"cert_reqs": ssl.CERT_NONE},
                     timeout=10.0,
+                    **proxy_options,
                 )
+
                 self.ws.recv()
                 self.ws.send("40")
                 self.ws.recv()
