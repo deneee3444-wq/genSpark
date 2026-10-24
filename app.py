@@ -70,7 +70,7 @@ ROOT_ACCOUNTS_FILE = os.path.join(os.path.dirname(BASE_DIR), "genspark_hesaplar.
 
 # Proxy Ayarı: 0 -> Kapalı (Doğrudan bağlantı), 1 -> Açık (Proxy üzerinden)
 PROXY_MODE = int(os.environ.get("PROXY_MODE", 1))
-PROXY_URL = os.environ.get("PROXY_URL", "http://twbqxqtg-5:6hkxko5aywl7@p.webshare.io:80")
+PROXY_URL = os.environ.get("PROXY_URL", "http://twbqxqtg-6:6hkxko5aywl7@p.webshare.io:80")
 
 def get_proxies() -> Optional[Dict[str, str]]:
     """PROXY_MODE aktif ise curl_cffi ve requests proxy sözlüğü döner."""
