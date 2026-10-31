@@ -15,7 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
-   USE AI — "IRIS" DESIGN SYSTEM
+   GENSPARK AI — "IRIS" DESIGN SYSTEM
    1 tokens · 2 base · 3 setup · 4 sidebar · 5 header · 6 messages
    7 markdown · 8 code · 9 input · 10 overlays · 11 responsive
    ══════════════════════════════════════════════════════════════ */
@@ -1838,25 +1838,34 @@ function escHtml(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function getDisplayUrl(att) {
+  if (!att) return '';
+  const u = typeof att === 'string' ? att : (att.url || '');
+  if (!u) return '';
+  if (u.startsWith('data:')) return u;
+  const fn = typeof att === 'object' ? (att.filename || att.name || '') : '';
+  return `/api/file_preview?url=${encodeURIComponent(u)}&name=${encodeURIComponent(fn)}`;
+}
+
 function getCleanFileName(item) {
   if (!item) return 'Dosya';
   if (typeof item === 'object') {
     const raw = item.filename || item.name;
-    if (raw && String(raw).trim()) {
+    if (raw && String(raw).trim() && String(raw).trim() !== 'download') {
       let n = String(raw).trim();
       if (n.includes('%2F') || n.includes('%2f')) n = decodeURIComponent(n).split('/').pop();
       else if (n.includes('/')) n = n.split('/').pop();
-      if (n) return n;
+      if (n && n !== 'download') return n;
     }
   }
   const u = typeof item === 'string' ? item : (item.url || '');
   if (!u) return 'Dosya';
   try {
     const decoded = decodeURIComponent(u);
-    return decoded.split('?')[0].split('#')[0].split('/').pop() || 'Dosya';
-  } catch {
-    return u.split('?')[0].split('#')[0].split('/').pop() || 'Dosya';
-  }
+    const last = decoded.split('?')[0].split('#')[0].split('/').pop();
+    if (last && last !== 'download') return last;
+  } catch {}
+  return (typeof item === 'object' && (item.filename || item.name)) || 'Dosya';
 }
 
 function isImageItem(item) {
@@ -1864,10 +1873,17 @@ function isImageItem(item) {
   if (typeof item === 'object') {
     const t = item.mediaType || item.type || '';
     if (t.startsWith('image/')) return true;
+    const fn = item.filename || item.name || '';
+    if (/\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(fn.split('?')[0].split('#')[0])) return true;
+    const u = item.url || '';
+    if (String(u).startsWith('data:image/')) return true;
+    if (/\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(String(u).split('?')[0].split('#')[0])) return true;
+    if (String(u).includes('/image')) return true;
+    return false;
   }
-  const u = typeof item === 'string' ? item : (item.url || item.filename || item.name || '');
-  const cleanU = String(u).split('?')[0].split('#')[0];
-  return /\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(cleanU) || cleanU.includes('/image');
+  const str = String(item).split('?')[0].split('#')[0];
+  if (str.startsWith('data:image/')) return true;
+  return /\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(str) || str.includes('/image');
 }
 
 function collectAutoAttachFiles(pendingAtts = []) {
@@ -1884,14 +1900,21 @@ function collectAutoAttachFiles(pendingAtts = []) {
       const m = onclick.match(/window\.open\('([^']+)'/);
       if (m) u = m[1];
     }
+    if (u && u.startsWith('/api/file_preview?')) {
+      try {
+        const parsed = new URL(u, window.location.origin);
+        u = parsed.searchParams.get('url') || u;
+      } catch {}
+    }
     if (u && !existingUrls.has(u)) {
       existingUrls.add(u);
       const nameEl = chip.querySelector('.att-chip-name');
-      const name = nameEl ? nameEl.textContent.trim() : getCleanFileName(u);
-      const isImg = isImageItem(u);
+      const fullName = chip.getAttribute('title') || (nameEl ? nameEl.textContent.trim() : '');
+      const name = fullName || getCleanFileName(u);
+      const isImg = isImageItem({ filename: name, url: u });
       result.push({
         url: u,
-        filename: name || getCleanFileName(u),
+        filename: name,
         mediaType: isImg ? 'image/jpeg' : 'application/octet-stream'
       });
     }
@@ -1903,16 +1926,43 @@ function collectAutoAttachFiles(pendingAtts = []) {
     const u = img.getAttribute('src');
     if (u && !existingUrls.has(u)) {
       existingUrls.add(u);
-      const name = getCleanFileName(u);
+      const name = getCleanFileName(u) || 'Uretilen_Gorsel.png';
       result.push({
         url: u,
         filename: name,
-        mediaType: 'image/jpeg'
+        mediaType: 'image/png'
       });
     }
   });
 
   return result;
+}
+
+function syncAutoAttachPreview() {
+  if (!isAutoAttach()) {
+    const remaining = S.pendingAtts.filter(a => !a._autoAttached);
+    if (remaining.length !== S.pendingAtts.length) {
+      S.pendingAtts = remaining;
+      renderAttachPreview();
+    }
+    return;
+  }
+  const autoFiles = collectAutoAttachFiles(S.pendingAtts.filter(a => !a._autoAttached));
+  const manualAtts = S.pendingAtts.filter(a => !a._autoAttached);
+  const existingUrls = new Set(manualAtts.map(a => a.url).filter(Boolean));
+  const merged = [...manualAtts];
+
+  for (const af of autoFiles) {
+    if (!existingUrls.has(af.url)) {
+      existingUrls.add(af.url);
+      merged.push({
+        ...af,
+        _autoAttached: true
+      });
+    }
+  }
+  S.pendingAtts = merged;
+  renderAttachPreview();
 }
 
 function truncateFileName(name, maxLen = 22) {
@@ -1984,13 +2034,20 @@ function ensureImages(msgEl, urls) {
 
 async function reconcileWithServer(textNode, localText) {
   const data = await fetchServerHistory();
-  const turn = lastAssistantTurn(data && data.history);
-  if (!turn || !textNode) return localText || '';
+  if (!data || !data.history || !textNode) return localText || '';
+  const allAiNodes = document.querySelectorAll('#messagesInner .msg.ai');
+  const aiMsgEl = textNode.closest('.msg.ai');
+  const aiIndex = Array.from(allAiNodes).indexOf(aiMsgEl);
+
+  const asstTurns = data.history.filter(t => t.role === 'assistant');
+  const turn = (aiIndex >= 0 && aiIndex < asstTurns.length) ? asstTurns[aiIndex] : null;
+  if (!turn) return localText || '';
+
   const serverText = turn.text || '';
   const out = serverText.length > (localText || '').length ? serverText : (localText || '');
   renderMarkdown(textNode, out, false);
   const genImgs = turn.generatedImages || turn.images || [];
-  ensureImages(textNode.closest('.msg'), genImgs);
+  ensureImages(aiMsgEl, genImgs);
   return out;
 }
 
@@ -2077,6 +2134,7 @@ async function loadHistory() {
   scrollBottom();
 
   if (r.streaming) startResumePolling(); else stopResumePolling();
+  syncAutoAttachPreview();
 }
 
 // ─── STOP STREAMING ───────────────────────────────────────────────────
@@ -2228,6 +2286,7 @@ async function sendMessage() {
           S.autoRetries = 0;
           updateSidebar();
           await refreshConversations();
+          syncAutoAttachPreview();
           terminal = true;
 
         } else if (d.type === 'stream_interrupted') {
@@ -2272,6 +2331,10 @@ async function sendMessage() {
           scrollBottom();
 
         } else if (d.type === 'error') {
+          if (S.stopping) {
+            terminal = true;
+            break;
+          }
           const code = String(d.code || '');
           if (code === 'LOCKED') {
             if (!full) aiEl.remove();
@@ -2325,7 +2388,7 @@ async function sendMessage() {
     }
 
   } catch(e) {
-    if (e.name === 'AbortError') {
+    if (e.name === 'AbortError' || S.stopping) {
       await loadHistory();
       await refreshConversations();
     } else {
@@ -2461,14 +2524,15 @@ function appendMessage(role, text, attachments = [], generatedImages = [], strea
       const fullName = getCleanFileName(att);
       const displayName = truncateFileName(fullName, 20);
       
+      const displaySrc = getDisplayUrl(att) || u;
       if (isImg) {
-        return `<div class="att-chip msg-att" onclick="window.open('${u}','_blank')" title="${escHtml(fullName)}">
-          <img src="${u}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false">
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}">
+          <img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false">
           <div class="att-chip-fallback" style="display:none"></div>
           <div class="att-chip-name">${escHtml(displayName)}</div>
         </div>`;
       } else {
-        return `<div class="att-chip msg-att" onclick="window.open('${u}','_blank')" title="${escHtml(fullName)}">
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}">
           <div class="att-chip-fallback"></div>
           <div class="att-chip-name">${escHtml(displayName)}</div>
         </div>`;
@@ -2732,10 +2796,11 @@ function renderAttachPreview() {
     const isImg = isImageItem(a);
     const cleanName = getCleanFileName(a);
     const displayName = truncateFileName(cleanName, 18);
+    const displaySrc = getDisplayUrl(a);
     const preview = isImg
-      ? `<img src="${a.url}" alt="${escHtml(displayName)}" draggable="false">`
+      ? `<img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback sm" style="display:none"></div>`
       : `<div class="att-chip-fallback sm"></div>`;
-    return `<div class="att-chip" data-idx="${i}" title="${escHtml(cleanName)}">
+    return `<div class="att-chip${a._autoAttached ? ' auto-attached' : ''}" data-idx="${i}" title="${escHtml(cleanName)}${a._autoAttached ? ' (Otomatik Eklendi)' : ''}">
       ${preview}
       <div class="att-chip-name">${escHtml(displayName)}</div>
       <button onclick="removeAtt(${i})" title="Kaldır">×</button>
@@ -2808,8 +2873,9 @@ async function openPastFilesModal(e) {
       const displayName = truncateFileName(cleanName, 18);
       file.filename = cleanName;
       
+      const displaySrc = getDisplayUrl(file) || file.url;
       const preview = isImg
-        ? `<img src="${file.url}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback sm" style="display:none"></div>`
+        ? `<img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback sm" style="display:none"></div>`
         : `<div class="att-chip-fallback sm"></div>`;
       
       const fileJson = escHtml(JSON.stringify(file));
@@ -2817,7 +2883,7 @@ async function openPastFilesModal(e) {
       return `
         <div class="past-file-chip${isSelected ? ' selected' : ''}" id="pfc_${idx}" onclick="toggleSelectPastFile(${idx})" data-file='${fileJson}' title="${escHtml(cleanName)}">
           <div class="past-file-check-badge">✓</div>
-          <button type="button" class="past-file-link-btn" title="Bağlantıyı Aç (Yeni Sekme)" onclick="event.stopPropagation(); window.open('${file.url}','_blank')">
+          <button type="button" class="past-file-link-btn" title="Bağlantıyı Aç (Yeni Sekme)" onclick="event.stopPropagation(); window.open('${displaySrc}','_blank')">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </button>
           ${preview}
@@ -3186,6 +3252,7 @@ function isAutoAttach() {
 function saveAutoAttachPref() {
   localStorage.setItem('ua-auto-attach', isAutoAttach() ? '1' : '0');
   postFeature('auto_attach', isAutoAttach());
+  syncAutoAttachPreview();
   toast(isAutoAttach() ? 'Geçmiş dosyaları otomatik ekleme açık' : 'Geçmiş dosyaları otomatik ekleme kapalı', isAutoAttach() ? 'success' : 'info');
 }
 
@@ -3352,10 +3419,11 @@ function updateUserMessage(userEl, text, attachments = []) {
       const isImg = isImageItem(att);
       const fullName = getCleanFileName(att);
       const displayName = truncateFileName(fullName, 20);
+      const displaySrc = getDisplayUrl(att) || u;
       if (isImg) {
-        return `<div class="att-chip msg-att" onclick="window.open('${u}','_blank')" title="${escHtml(fullName)}"><img src="${u}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback" style="display:none"></div><div class="att-chip-name">${escHtml(displayName)}</div></div>`;
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}"><img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback" style="display:none"></div><div class="att-chip-name">${escHtml(displayName)}</div></div>`;
       } else {
-        return `<div class="att-chip msg-att" onclick="window.open('${u}','_blank')" title="${escHtml(fullName)}"><div class="att-chip-fallback"></div><div class="att-chip-name">${escHtml(displayName)}</div></div>`;
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}"><div class="att-chip-fallback"></div><div class="att-chip-name">${escHtml(displayName)}</div></div>`;
       }
     }).join('');
     if (actions && body) {
@@ -3535,8 +3603,10 @@ async function doAutoNewAccount(pendingMsg, pendingAtts) {
       const input = document.getElementById('msgInput');
       input.value = pendingMsg;
       autoResize(input);
-      S.pendingAtts = pendingAtts || [];
+      S.pendingAtts = [...(pendingAtts || [])];
       renderAttachPreview();
+      scrollBottom(true);
+      await new Promise(r => setTimeout(r, 450));
       S.streaming = false;
       setSendDisabled(false);
       await sendMessage();
@@ -3603,7 +3673,7 @@ function downloadChat(format) {
 
   const now = new Date();
   const dateStr = now.toISOString().slice(0,16).replace('T','_').replace(':','-');
-  const filename = `useai_${dateStr}`;
+  const filename = `genspark_${dateStr}`;
 
   if (format === 'json') {
     triggerDownload(filename + '.json', JSON.stringify(history, null, 2), 'application/json');
@@ -3657,7 +3727,7 @@ function downloadChat(format) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Use AI — Sohbet ${dateStr}</title>
+<title>Genspark AI — Sohbet ${dateStr}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="${hljsTheme}">
 <style>
