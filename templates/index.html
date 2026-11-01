@@ -2167,7 +2167,10 @@ async function sendMessage() {
   }
   if (!msg) return;
 
-  // Hesap henüz bağlı değilse arka planda otomatik bağlanır
+  if (!S.accountCreated) {
+    toast('Önce sol alttan giriş yapın', 'warn');
+    return;
+  }
 
   stopResumePolling();
   input.value = '';
