@@ -1,0 +1,5834 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Genspark AI</title>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f46e5'/%3E%3Cstop offset='.5' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='10' fill='url(%23g)'/%3E%3Cpath d='M16 5.2c.42 4.42 3.92 7.92 8.34 8.34-4.42.42-7.92 3.92-8.34 8.34-.42-4.42-3.92-7.92-8.34-8.34 4.42-.42 7.92-3.92 8.34-8.34z' fill='%23fff' transform='translate(0 2.5)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-light">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" id="hljs-dark" disabled>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   GENSPARK AI — "OBSIDIAN & LUMINA" ULTRA-PREMIUM DESIGN SYSTEM
+   ══════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --display: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* Light Theme — Crisp Architectural Porcelain */
+  --bg: #f6f7fb;
+  --bg-subtle: #eef0f7;
+  --sidebar: rgba(248, 249, 253, 0.85);
+  --surface: #ffffff;
+  --surface2: #f2f4fa;
+  --surface3: #e6e9f4;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-2: rgba(15, 23, 42, 0.14);
+  --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  --code-bg: #f8f9fc;
+  --code-head: #eef1f8;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-light: #4f46e5;
+  --accent-2: #9333ea;
+  --accent-3: #ec4899;
+  --accent-dim: rgba(79, 70, 229, 0.08);
+  --accent-glow: rgba(79, 70, 229, 0.22);
+  --grad-brand: linear-gradient(135deg, #4f46e5 0%, #7c3aed 52%, #db2777 100%);
+  --grad-btn: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
+
+  --user-bg: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  --user-text: #ffffff;
+  --user-border: rgba(79, 70, 229, 0.25);
+
+  --error: #ef4444;
+  --success: #10b981;
+  --warn: #f59e0b;
+
+  --r1: 10px;
+  --r2: 14px;
+  --r3: 18px;
+  --r4: 24px;
+  --pill: 999px;
+
+  --sidebar-w: 288px;
+  --read: 810px;
+  --chip-w: calc((100% - 64px) / 9);
+  --chip-h: 86px;
+  --gutter: 12px;
+
+  --sh-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.03);
+  --sh-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 16px 32px rgba(15, 23, 42, 0.06);
+  --sh-lg: 0 12px 28px rgba(15, 23, 42, 0.08), 0 32px 64px rgba(15, 23, 42, 0.12);
+  --sh-dock: 0 8px 30px rgba(15, 23, 42, 0.07), 0 2px 8px rgba(15, 23, 42, 0.04);
+
+  --glass: rgba(255, 255, 255, 0.82);
+  --glass-strong: rgba(255, 255, 255, 0.92);
+
+  --e: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --e-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --fast: 0.15s;
+  --mid: 0.25s;
+
+  /* Modern SVG Mask Icons */
+  --ic-spark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 1.8c.52 5.42 4.26 9.16 9.68 9.68v1.04c-5.42.52-9.16 4.26-9.68 9.68h-1.04c-.52-5.42-4.26-9.16-9.68-9.68v-1.04c5.42-.52 9.16-4.26 9.68-9.68z'/%3E%3C/svg%3E");
+  --ic-user: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20.5c0-3.3-3.6-5.5-8-5.5s-8 2.2-8 5.5'/%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3C/svg%3E");
+  --ic-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+  --ic-ask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.1 9.2a3 3 0 0 1 5.8 1c0 2-3 2.8-3 2.8'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+  --ic-file: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 2.5H7A2.5 2.5 0 0 0 4.5 5v14A2.5 2.5 0 0 0 7 21.5h10a2.5 2.5 0 0 0 2.5-2.5V7.5z'/%3E%3Cpath d='M14.5 2.5v5h5'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] {
+  /* Dark Theme — Deep Spatial Obsidian */
+  --bg: #07080d;
+  --bg-subtle: #0c0e16;
+  --sidebar: rgba(12, 14, 22, 0.82);
+  --surface: #111420;
+  --surface2: #171b2b;
+  --surface3: #1f2538;
+  --border: rgba(255, 255, 255, 0.075);
+  --border-2: rgba(255, 255, 255, 0.14);
+  --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --code-bg: #0b0d15;
+  --code-head: #131726;
+
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-light: #a5b4fc;
+  --accent-2: #a855f7;
+  --accent-3: #ec4899;
+  --accent-dim: rgba(99, 102, 241, 0.14);
+  --accent-glow: rgba(99, 102, 241, 0.32);
+  --grad-brand: linear-gradient(135deg, #6366f1 0%, #a855f7 52%, #ec4899 100%);
+  --grad-btn: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+
+  --text: #f1f5f9;
+  --text2: #94a3b8;
+  --text3: #64748b;
+
+  --user-bg: linear-gradient(135deg, #252a48 0%, #1e223d 100%);
+  --user-text: #f8fafc;
+  --user-border: rgba(129, 140, 248, 0.25);
+
+  --error: #f87171;
+  --success: #34d399;
+  --warn: #fbbf24;
+
+  --sh-sm: 0 2px 4px rgba(0, 0, 0, 0.35);
+  --sh-md: 0 6px 18px rgba(0, 0, 0, 0.45), 0 20px 44px rgba(0, 0, 0, 0.35);
+  --sh-lg: 0 14px 36px rgba(0, 0, 0, 0.55), 0 36px 80px rgba(0, 0, 0, 0.65);
+  --sh-dock: 0 14px 40px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.35);
+
+  --glass: rgba(17, 20, 32, 0.78);
+  --glass-strong: rgba(19, 23, 36, 0.92);
+}
+
+/* ─────────── BASE & AMBIENT MESH ─────────── */
+html, body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  max-width: 100vw;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.65;
+  letter-spacing: -0.008em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(45rem 35rem at 12% -5%, var(--accent-glow), transparent 62%),
+    radial-gradient(38rem 30rem at 92% 8%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 60%),
+    radial-gradient(48rem 34rem at 50% 110%, color-mix(in srgb, var(--accent-3) 12%, transparent), transparent 65%);
+  opacity: 0.55;
+  filter: blur(28px);
+  animation: ambientShift 28s var(--e) infinite alternate;
+}
+
+[data-theme="dark"] body::before {
+  opacity: 0.36;
+}
+
+@keyframes ambientShift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-2%, 2.5%, 0) scale(1.06); }
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+svg {
+  display: block;
+  flex: none;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r1);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: var(--pill);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text3);
+  background-clip: content-box;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.92); } }
+@keyframes slot-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.94) translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* ─────────── SETUP / LOGIN SCREEN ─────────── */
+.setup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background:
+    radial-gradient(circle at 50% 22%, var(--accent-dim), transparent 58%),
+    var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.setup-card {
+  position: relative;
+  background: var(--glass-strong);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--border-2);
+  border-radius: 28px;
+  padding: 46px 40px 40px;
+  max-width: 430px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--sh-lg), var(--inner-glow);
+  animation: rise 0.5s var(--e-out) both;
+}
+
+.setup-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(145deg, var(--accent-glow), transparent 42%, transparent 65%, color-mix(in srgb, var(--accent-2) 28%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.setup-logo {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 22px;
+  border-radius: 22px;
+  color: #fff;
+  background: var(--grad-brand);
+  box-shadow: 0 14px 32px var(--accent-glow), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  position: relative;
+}
+
+.setup-logo::after {
+  content: "";
+  width: 34px;
+  height: 34px;
+  background: currentColor;
+  -webkit-mask: var(--ic-spark) center/contain no-repeat;
+  mask: var(--ic-spark) center/contain no-repeat;
+}
+
+.setup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--pill);
+  background: var(--accent-dim);
+  border: 1px solid var(--user-border);
+  color: var(--accent-light);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+.setup-card h1 {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  margin-bottom: 8px;
+}
+
+.setup-card p {
+  color: var(--text2);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.setup-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.setup-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--r2);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 18px;
+  transition: border-color var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.setup-input:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--accent-dim);
+}
+
+.setup-btn {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: var(--r2);
+  background: var(--grad-btn);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 0 8px 22px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform var(--fast) var(--e), box-shadow var(--fast), filter var(--fast);
+}
+
+.setup-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px var(--accent-glow);
+}
+
+.setup-btn:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.setup-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.setup-status {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--text2);
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.setup-status.error {
+  color: var(--error);
+  font-weight: 500;
+}
+
+.dot-anim {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.dot-anim span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: bounce 1.2s infinite;
+}
+
+.dot-anim span:nth-child(2) { animation-delay: 0.15s; }
+.dot-anim span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ─────────── APP SHELL & SIDEBAR ─────────── */
+.app {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--sidebar);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform var(--mid) var(--e);
+}
+
+.sidebar-header {
+  padding: 20px 16px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.sidebar-logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  color: #fff;
+  background: var(--grad-brand);
+  box-shadow: 0 6px 16px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-logo::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: var(--ic-spark) center/contain no-repeat;
+  mask: var(--ic-spark) center/contain no-repeat;
+}
+
+.sidebar-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16.5px;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar-title span {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sidebar-new-wrap {
+  padding: 4px 14px 10px;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border-radius: var(--r2);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text2);
+  width: 100%;
+  text-align: left;
+  transition: all var(--fast) var(--e);
+}
+
+.sidebar-btn:hover {
+  background: var(--surface3);
+  color: var(--text);
+}
+
+.sidebar-btn:active {
+  transform: scale(0.985);
+}
+
+.sidebar-btn.danger:hover {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+}
+
+.sidebar-new {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  font-weight: 600;
+  padding: 11px 14px;
+  box-shadow: var(--sh-sm), var(--inner-glow);
+  justify-content: space-between;
+}
+
+.sidebar-new-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-new-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  display: grid;
+  place-items: center;
+  transition: background var(--fast), color var(--fast);
+}
+
+.sidebar-new:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 4px 14px var(--accent-dim);
+}
+
+.sidebar-new:hover .sidebar-new-icon {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sidebar-kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text3);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.sidebar-section {
+  padding: 12px 18px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conv-list {
+  padding: 0 10px 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.conv-empty {
+  padding: 22px 14px;
+  font-size: 12.5px;
+  color: var(--text3);
+  text-align: center;
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r2);
+  margin: 4px 4px;
+}
+
+.conv-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: var(--r2);
+  cursor: pointer;
+  font-size: 13.2px;
+  color: var(--text2);
+  width: 100%;
+  text-align: left;
+  margin-bottom: 3px;
+  position: relative;
+  border: 1px solid transparent;
+  transition: background var(--fast), color var(--fast), border-color var(--fast), box-shadow var(--fast);
+}
+
+.conv-item:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.conv-item.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 550;
+  border-color: var(--border-2);
+  box-shadow: var(--sh-sm), var(--inner-glow);
+}
+
+.conv-item.active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3.5px;
+  height: 18px;
+  border-radius: var(--pill);
+  background: var(--grad-brand);
+}
+
+.conv-item > svg {
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: opacity var(--fast), color var(--fast);
+}
+
+.conv-item:hover > svg,
+.conv-item.active > svg {
+  opacity: 1;
+  color: var(--accent-light);
+}
+
+.conv-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.conv-item-title-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 3px 7px;
+  outline: none;
+  min-width: 0;
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.conv-item-count {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text3);
+  flex-shrink: 0;
+  background: var(--surface2);
+  padding: 2px 7px;
+  border-radius: var(--pill);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border);
+}
+
+.conv-item.active .conv-item-count {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border-color: var(--user-border);
+}
+
+.conv-item-menu-btn {
+  flex-shrink: 0;
+  color: var(--text3);
+  padding: 4px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--fast), background var(--fast), color var(--fast);
+}
+
+.conv-item:hover .conv-item-menu-btn,
+.conv-item.menu-open .conv-item-menu-btn {
+  opacity: 1;
+}
+
+.conv-item-menu-btn:hover {
+  background: var(--surface3);
+  color: var(--text);
+}
+
+.conv-menu {
+  position: absolute;
+  right: 6px;
+  top: calc(100% + 5px);
+  background: var(--glass-strong);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r2);
+  padding: 5px;
+  min-width: 178px;
+  z-index: 200;
+  box-shadow: var(--sh-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: pop 0.16s var(--e-out) both;
+  transform-origin: top right;
+}
+
+.conv-menu button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  text-align: left;
+  width: 100%;
+  transition: background var(--fast), color var(--fast);
+}
+
+.conv-menu button:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.conv-menu button.danger:hover {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+}
+
+/* Account Card in Sidebar */
+.sidebar-account {
+  margin: 0 12px 10px;
+  padding: 13px 14px;
+  background: var(--surface);
+  border-radius: var(--r3);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-sm), var(--inner-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-account::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--grad-brand);
+  opacity: 0.7;
+}
+
+.account-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 7px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.account-email {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.account-email-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.account-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 8px;
+  background: var(--success);
+  animation: pulse-dot 2.2s infinite;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.account-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  transition: all var(--fast) var(--e);
+}
+
+.account-create-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.account-create-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.account-create-btn.spinning svg {
+  animation: spin 0.8s linear infinite;
+  transform-origin: center;
+}
+
+.sidebar-spacer { flex: 0; }
+
+.sidebar-footer {
+  padding: 4px 12px 14px;
+}
+
+/* ─────────── HEADER & TOPBAR ─────────── */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  flex-shrink: 0;
+  min-height: 60px;
+  position: relative;
+  z-index: 20;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.header-workspace-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.header-workspace-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+}
+
+.header-workspace-sep {
+  color: var(--text3);
+  font-weight: 400;
+}
+
+.header-model-badge {
+  color: var(--accent-light);
+  font-weight: 600;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  margin-left: auto;
+}
+
+.topbar-titles {
+  display: none;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topbar-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-model {
+  font-size: 11.5px;
+  color: var(--accent-light);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hamburger {
+  display: none;
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--text2);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: background var(--fast), color var(--fast);
+}
+
+.hamburger:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.header-action-btn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-sm);
+  transition: all var(--fast) var(--e);
+}
+
+.header-action-btn:hover {
+  color: var(--text);
+  border-color: var(--border-2);
+  background: var(--surface2);
+}
+
+/* Menus & Settings Popover */
+.download-menu,
+.settings-popup {
+  background: var(--glass-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--sh-lg), var(--inner-glow);
+}
+
+.download-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  border-radius: var(--r3);
+  padding: 6px;
+  min-width: 215px;
+  z-index: 300;
+}
+
+.download-menu.open {
+  display: block;
+  animation: pop 0.16s var(--e-out) both;
+  transform-origin: top right;
+}
+
+.download-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  text-align: left;
+  width: 100%;
+  transition: background var(--fast), color var(--fast);
+}
+
+.download-menu button:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.download-menu button:hover svg {
+  color: var(--accent-light);
+}
+
+.settings-popup {
+  display: none;
+  position: absolute;
+  top: 64px;
+  right: 22px;
+  z-index: 300;
+  border-radius: var(--r4);
+  padding: 18px;
+  min-width: 280px;
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
+}
+
+.settings-popup.open {
+  display: block;
+  animation: pop 0.18s var(--e-out) both;
+  transform-origin: top right;
+}
+
+.settings-popup-title {
+  font-family: var(--display);
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin: 14px 0 6px;
+}
+
+.settings-section-label:first-of-type { margin-top: 2px; }
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 4px;
+}
+
+.settings-row-text {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text2);
+}
+
+.settings-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r2);
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  text-align: left;
+  width: 100%;
+  transition: all var(--fast);
+}
+
+.settings-row-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--surface3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--pill);
+  transition: all var(--mid) var(--e);
+}
+
+.switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--mid) var(--e-out);
+}
+
+.switch input:checked + .slider {
+  background: var(--grad-btn);
+  border-color: transparent;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+/* ─────────── MESSAGES STREAM ─────────── */
+.messages {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.messages-scroll {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+}
+
+.messages-inner {
+  max-width: var(--read);
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px 44px;
+}
+
+.scroll-bottom-btn {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--glass-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--sh-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--mid), transform var(--mid) var(--e-out), color var(--fast), border-color var(--fast);
+}
+
+.scroll-bottom-btn.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.scroll-bottom-btn:hover {
+  color: var(--accent-light);
+  border-color: var(--accent);
+}
+
+/* Individual Message Layout */
+.msg {
+  display: flex;
+  gap: 15px;
+  padding: 8px 0 24px;
+  position: relative;
+  animation: msg-in 0.3s var(--e-out) both;
+  min-width: 0;
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.msg-avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 34px;
+}
+
+.msg-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+  font-size: 0;
+}
+
+.msg-avatar::after {
+  content: "";
+  width: 17px;
+  height: 17px;
+  background: currentColor;
+}
+
+.msg-avatar.ai {
+  color: #fff;
+  background: var(--grad-brand);
+  box-shadow: 0 4px 14px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.msg-avatar.ai::after {
+  -webkit-mask: var(--ic-spark) center/contain no-repeat;
+  mask: var(--ic-spark) center/contain no-repeat;
+}
+
+.msg-avatar.user {
+  color: var(--text2);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--sh-sm);
+}
+
+.msg-avatar.user::after {
+  -webkit-mask: var(--ic-user) center/contain no-repeat;
+  mask: var(--ic-user) center/contain no-repeat;
+}
+
+.msg-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+  position: relative;
+  max-width: 92%;
+}
+
+.msg-role {
+  font-family: var(--display);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text2);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.msg-role.ai {
+  color: var(--text);
+}
+
+.msg-role.user {
+  color: var(--text3);
+}
+
+.failed-badge {
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--error);
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 28%, transparent);
+  padding: 2px 9px;
+  border-radius: var(--pill);
+}
+
+.failed-badge.retrying {
+  color: var(--accent-light);
+  background: var(--accent-dim);
+  border-color: var(--user-border);
+}
+
+.failed-badge.retrying svg {
+  animation: spin 0.8s linear infinite;
+  transform-origin: center;
+}
+
+/* Message Bottom Actions */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  opacity: 0;
+  transition: opacity var(--fast);
+}
+
+.msg:hover .msg-actions,
+.msg:focus-within .msg-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .msg-actions { opacity: 1; }
+}
+
+.msg-act-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  box-shadow: var(--sh-sm);
+  transition: all var(--fast);
+}
+
+.msg-act-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--user-border);
+  color: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.msg-act-btn .ic-check { display: none; }
+.msg-act-btn.copied {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
+}
+.msg-act-btn.copied .ic-copy { display: none; }
+.msg-act-btn.copied .ic-check { display: block; }
+
+/* User Message Bubble Alignment */
+.msg.user {
+  justify-content: flex-end;
+}
+
+.msg.user .msg-avatar-col { order: 2; }
+
+.msg.user .msg-body {
+  order: 1;
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 82%;
+}
+
+.msg.user .msg-role {
+  justify-content: flex-end;
+}
+
+.msg.user .msg-text {
+  text-align: left;
+  max-width: 100%;
+  background: var(--user-bg);
+  color: var(--user-text);
+  border: 1px solid var(--user-border);
+  padding: 12px 17px;
+  border-radius: 20px 20px 6px 20px;
+  box-shadow: var(--sh-sm), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.msg.user .msg-attachments,
+.msg.user .msg-images {
+  justify-content: flex-end;
+  max-width: 100%;
+}
+
+.msg.user .msg-actions {
+  justify-content: flex-end;
+}
+
+/* ─────────── MARKDOWN TYPOGRAPHY ─────────── */
+.msg-text {
+  color: var(--text);
+  line-height: 1.75;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.msg-text > *:first-child { margin-top: 0; }
+.msg-text > *:last-child { margin-bottom: 0; }
+.msg-text p { margin-bottom: 14px; }
+
+.msg-text ul,
+.msg-text ol {
+  margin: 12px 0 16px;
+  list-style: none;
+  padding-left: 0;
+  counter-reset: ol-counter;
+}
+
+.msg-text ol li {
+  counter-increment: ol-counter;
+  position: relative;
+  padding-left: 2.25em;
+}
+
+.msg-text ol li::before {
+  content: counter(ol-counter);
+  position: absolute;
+  left: 0;
+  top: 0.16em;
+  width: 1.55em;
+  height: 1.55em;
+  display: grid;
+  place-items: center;
+  font-size: 0.75em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-light);
+  background: var(--accent-dim);
+  border: 1px solid var(--user-border);
+  border-radius: 7px;
+}
+
+.msg-text ul li {
+  position: relative;
+  padding-left: 1.5em;
+}
+
+.msg-text ul li::before {
+  content: "";
+  position: absolute;
+  left: 0.3em;
+  top: 0.7em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+}
+
+.msg-text li {
+  margin-bottom: 7px;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.msg-text li > pre,
+.msg-text li > .code-block,
+.msg-text li > div.table-wrap {
+  max-width: 100%;
+}
+
+.msg-text li ul,
+.msg-text li ol {
+  margin: 6px 0 2px;
+}
+
+.msg-text h1,
+.msg-text h2,
+.msg-text h3,
+.msg-text h4 {
+  font-family: var(--display);
+  margin: 24px 0 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+
+.msg-text h1 { font-size: 23px; }
+.msg-text h2 {
+  font-size: 19px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.msg-text h3 { font-size: 16.5px; }
+.msg-text h4 { font-size: 14.5px; color: var(--text2); }
+
+.msg-text strong { font-weight: 650; color: inherit; }
+.msg-text em { font-style: italic; }
+.msg-text del { color: var(--text3); }
+
+.msg-text blockquote {
+  position: relative;
+  margin: 16px 0;
+  padding: 10px 16px 10px 18px;
+  background: var(--surface2);
+  border-radius: 0 var(--r2) var(--r2) 0;
+  color: var(--text2);
+}
+
+.msg-text blockquote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3.5px;
+  border-radius: var(--pill);
+  background: var(--grad-brand);
+}
+
+.msg-text a {
+  color: var(--accent-light);
+  text-decoration: underline;
+  text-decoration-color: var(--user-border);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  font-weight: 500;
+  transition: text-decoration-color var(--fast);
+}
+
+.msg-text a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.msg-text hr {
+  border: none;
+  height: 1px;
+  margin: 24px 0;
+  background: linear-gradient(90deg, transparent, var(--border-2), transparent);
+}
+
+.msg-text img {
+  max-width: 100%;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+}
+
+/* Tables */
+.msg-text table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13.5px;
+  margin: 0;
+  width: max-content;
+  min-width: 100%;
+}
+
+.msg-text table th,
+.msg-text table td {
+  padding: 10px 15px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.msg-text table th {
+  background: var(--surface2);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  position: sticky;
+  top: 0;
+}
+
+.msg-text table tr:last-child td { border-bottom: none; }
+.msg-text table tbody tr { transition: background var(--fast); }
+.msg-text table tbody tr:hover td { background: var(--accent-dim); }
+
+.table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  margin: 16px 0;
+  border-radius: var(--r2);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--sh-sm);
+}
+
+/* ─────────── CODE BLOCKS (IDE STYLE) ─────────── */
+.msg-text code {
+  background: var(--accent-dim);
+  border: 1px solid var(--user-border);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.86em;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--accent-light);
+  word-break: break-word;
+}
+
+.msg.user .msg-text code {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.code-block {
+  margin: 16px 0;
+  border-radius: var(--r3);
+  overflow: hidden;
+  border: 1px solid var(--border-2);
+  background: var(--code-bg);
+  box-shadow: var(--sh-sm);
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px 8px 14px;
+  background: var(--code-head);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.code-head::before {
+  content: attr(data-lang);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 44px;
+  background-image:
+    radial-gradient(circle, #ff5f56 4.5px, transparent 5px),
+    radial-gradient(circle, #ffbd2e 4.5px, transparent 5px),
+    radial-gradient(circle, #27c93f 4.5px, transparent 5px);
+  background-size: 10px 10px;
+  background-position: 0 center, 15px center, 30px center;
+  background-repeat: no-repeat;
+}
+
+.msg-text pre {
+  position: relative;
+  margin: 0;
+  background: transparent !important;
+  border: none;
+  overflow: hidden;
+}
+
+.msg-text pre code {
+  background: none !important;
+  border: none !important;
+  border-radius: 0;
+  color: inherit;
+  padding: 16px 18px !important;
+  font-size: 13px;
+  font-family: var(--mono);
+  font-weight: 400;
+  display: block;
+  overflow-x: auto;
+  line-height: 1.7;
+  white-space: pre;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  transition: all var(--fast);
+}
+
+.copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+.copy-btn.copied {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
+}
+
+.copy-btn .ic-check { display: none; }
+.copy-btn.copied .ic-copy { display: none; }
+.copy-btn.copied .ic-check { display: block; }
+
+/* ─────────── ATTACHMENTS, IMAGES & STATES ─────────── */
+.msg-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.att-chip.msg-att {
+  cursor: pointer;
+  width: 204px;
+  flex: 0 0 204px;
+  height: auto;
+  border-radius: var(--r2);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--sh-sm);
+  transition: transform var(--fast) var(--e), box-shadow var(--fast), border-color var(--fast);
+}
+
+.att-chip.msg-att img {
+  width: 100%;
+  height: 142px;
+  object-fit: cover;
+  display: block;
+}
+
+.att-chip.msg-att:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
+  border-color: var(--accent);
+}
+
+.att-chip.msg-att .att-chip-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 7px 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.att-chip-fallback {
+  width: 100%;
+  height: 142px;
+  display: grid;
+  place-items: center;
+  background: var(--surface2);
+  color: var(--text3);
+  font-size: 0;
+}
+
+.att-chip-fallback::after {
+  content: "";
+  width: 30px;
+  height: 30px;
+  background: currentColor;
+  -webkit-mask: var(--ic-file) center/contain no-repeat;
+  mask: var(--ic-file) center/contain no-repeat;
+}
+
+.att-chip .att-chip-fallback.sm { height: 60px; }
+.att-chip .att-chip-fallback.sm::after { width: 22px; height: 22px; }
+
+.msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.msg-image-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r3);
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--sh-md);
+  max-width: 340px;
+  width: 100%;
+  transition: transform var(--fast) var(--e), box-shadow var(--fast), border-color var(--fast);
+}
+
+.msg-image-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-lg);
+  border-color: var(--accent);
+}
+
+.msg-image-card img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  cursor: pointer;
+  display: block;
+}
+
+/* Typing & Streaming Cursor */
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--pill);
+  box-shadow: var(--sh-sm);
+}
+
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  animation: typing 1.3s infinite;
+  opacity: 0.4;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0.32s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+.stream-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--grad-brand);
+  margin-left: 4px;
+  vertical-align: text-bottom;
+  animation: blink 0.9s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0.15; }
+}
+
+.image-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin: 8px 0;
+  padding: 8px 15px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--pill);
+  box-shadow: var(--sh-sm);
+}
+
+.image-status::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid var(--border-2);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+
+/* Collapsible Long Messages */
+.msg-text.collapsible {
+  max-height: 480px;
+  overflow: hidden;
+  position: relative;
+}
+
+.msg-text.collapsible::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 84px;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events: none;
+}
+
+.msg.user .msg-text.collapsible::after {
+  background: linear-gradient(to bottom, transparent, #4f46e5);
+  border-radius: 0 0 6px 20px;
+}
+
+[data-theme="dark"] .msg.user .msg-text.collapsible::after {
+  background: linear-gradient(to bottom, transparent, #1e223d);
+}
+
+.msg-expand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: var(--pill);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text2);
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: var(--sh-sm);
+  transition: all var(--fast);
+}
+
+.msg-expand-link:hover {
+  color: var(--accent-light);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.msg-expand-link svg { transition: transform var(--mid) var(--e); }
+.msg-expand-link.expanded svg { transform: rotate(180deg); }
+
+/* System Logs */
+.sys-log {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text3);
+  margin: 0 auto 16px;
+  max-width: var(--read);
+  padding: 5px 14px;
+  line-height: 1.5;
+}
+
+.sys-log-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text2);
+  margin: 0 auto 16px;
+  padding: 12px 18px;
+  max-width: var(--read);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r3);
+  box-shadow: var(--sh-sm);
+}
+
+.msg + .sys-log,
+.msg + .sys-log-action { margin-top: -6px; }
+.sys-log + .sys-log { margin-top: -6px; }
+body.hide-sys-logs .sys-log { display: none; }
+
+.sys-btn {
+  padding: 7px 15px;
+  border-radius: var(--pill);
+  border: 1px solid var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all var(--fast);
+}
+
+.sys-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sys-btn.done {
+  border-color: var(--success);
+  background: transparent;
+  color: var(--success);
+  cursor: default;
+  opacity: 0.85;
+}
+
+.sys-btn.fail {
+  border-color: var(--error);
+  background: transparent;
+  color: var(--error);
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* ─────────── BENTO EMPTY STATE HERO ─────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 24px;
+  text-align: center;
+  min-height: 58vh;
+  animation: rise 0.5s var(--e-out) both;
+}
+
+.empty-orb-wrap {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.empty-orb-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  opacity: 0.22;
+  filter: blur(18px);
+  animation: pulse-dot 4s ease-in-out infinite;
+}
+
+.empty-orb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--grad-brand);
+  box-shadow: 0 16px 36px var(--accent-glow), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  animation: floatOrb 5s var(--e) infinite alternate;
+}
+
+.empty-orb::after {
+  content: "";
+  width: 34px;
+  height: 34px;
+  background: currentColor;
+  -webkit-mask: var(--ic-spark) center/contain no-repeat;
+  mask: var(--ic-spark) center/contain no-repeat;
+}
+
+@keyframes floatOrb {
+  to { transform: translateY(-7px); }
+}
+
+.empty-state h3 {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 14.5px;
+  max-width: 420px;
+  line-height: 1.6;
+  color: var(--text2);
+  margin-bottom: 28px;
+}
+
+.empty-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 580px;
+}
+
+.empty-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 16px;
+  border-radius: var(--r3);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-sm), var(--inner-glow);
+  transition: transform var(--fast) var(--e), border-color var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.empty-chip:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: var(--sh-md);
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent));
+}
+
+.empty-chip-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background var(--fast), color var(--fast);
+}
+
+.empty-chip:hover .empty-chip-icon {
+  background: var(--grad-brand);
+  color: #fff;
+}
+
+.empty-chip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.empty-chip-title {
+  font-family: var(--display);
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.empty-chip-desc {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.4;
+}
+
+/* ─────────── FLOATING COMMAND DOCK (INPUT AREA) ─────────── */
+.input-area {
+  padding: 0 24px 22px;
+  position: relative;
+  z-index: 10;
+}
+
+.input-inner {
+  max-width: var(--read);
+  margin: 0 auto;
+}
+
+.input-box {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--gutter);
+  background: var(--glass-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-2);
+  border-radius: 24px;
+  padding: 14px 16px 12px;
+  box-shadow: var(--sh-dock), var(--inner-glow);
+  transition: border-color var(--mid), box-shadow var(--mid), transform var(--mid);
+}
+
+.input-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-dim), var(--sh-dock);
+}
+
+/* Attachment Previews inside Input */
+.attachments-preview-container { display: none; }
+.attachments-preview-container.has-items {
+  display: block;
+  padding-bottom: var(--gutter);
+  border-bottom: 1px solid var(--border);
+  animation: slot-in 0.18s var(--e-out) both;
+}
+
+.attachments-preview-container.has-items.has-scrollbar { padding-bottom: 4px; }
+
+.attachments-preview {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.attachments-preview-container.has-scrollbar .attachments-preview { padding-bottom: 8px; }
+.attachments-preview::-webkit-scrollbar { height: 6px; }
+
+.att-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r2);
+  overflow: hidden;
+  width: var(--chip-w);
+  flex: 0 0 var(--chip-w);
+  min-width: 78px;
+  height: var(--chip-h);
+  user-select: none;
+}
+
+.att-chip.auto-attached {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.att-chip img {
+  width: 100%;
+  height: 60px;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.att-chip-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text2);
+  padding: 5px 7px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  direction: ltr;
+}
+
+.att-chip > button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 22, 0.72);
+  color: #fff;
+  font-size: 13px;
+  backdrop-filter: blur(6px);
+  transition: background var(--fast), opacity var(--fast);
+  opacity: 0;
+}
+
+.att-chip:hover > button { opacity: 1; }
+.att-chip > button:hover { background: var(--error); }
+@media (hover: none) { .att-chip > button { opacity: 1; } }
+
+/* Textarea */
+.input-box textarea {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 23px;
+  resize: none;
+  max-height: 180px;
+  overflow-y: hidden;
+  padding: 2px 4px;
+  margin: 0;
+  display: block;
+  min-height: 24px;
+  height: 24px;
+}
+
+.input-box textarea::placeholder { color: var(--text3); }
+.input-box textarea:disabled { opacity: 0.6; }
+
+/* Input Toolbar */
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.input-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  transition: all var(--fast) var(--e);
+}
+
+.icon-btn:hover {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.tool-pill-btn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: all var(--fast) var(--e);
+}
+
+.tool-pill-btn:hover {
+  color: var(--text);
+  border-color: var(--border-2);
+  background: var(--surface3);
+}
+
+.tool-pill-btn.on,
+.icon-btn.on {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border-color: var(--user-border);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--grad-btn);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: filter var(--fast), transform var(--fast), box-shadow var(--fast);
+}
+
+.send-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px var(--accent-glow);
+}
+
+.send-btn:active { transform: scale(0.93); }
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Attach Menu & Past Files */
+.attach-picker { position: relative; flex: none; }
+
+.attach-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  background: var(--glass-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r3);
+  padding: 6px;
+  min-width: 230px;
+  z-index: 300;
+  box-shadow: var(--sh-lg);
+}
+
+.attach-menu.open {
+  display: block;
+  animation: pop 0.16s var(--e-out) both;
+  transform-origin: bottom left;
+}
+
+.attach-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  text-align: left;
+  width: 100%;
+  transition: background var(--fast), color var(--fast);
+}
+
+.attach-menu button:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.attach-menu button:hover svg { color: var(--accent-light); }
+
+.past-files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px 2px;
+  margin: 14px 0 18px;
+}
+
+.past-file-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  height: 106px;
+  cursor: pointer;
+  transition: all var(--fast) var(--e);
+  user-select: none;
+}
+
+.past-file-chip:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
+  background: var(--surface);
+}
+
+.past-file-chip.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.past-file-chip img {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.past-file-chip .att-chip-fallback {
+  width: 100%;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  background: var(--surface3);
+  color: var(--text3);
+}
+
+.past-file-chip .att-chip-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 5px 7px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex: 1;
+}
+
+.past-file-link-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 22, 0.68);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  transition: all var(--fast);
+  z-index: 2;
+}
+
+.past-file-link-btn:hover {
+  background: var(--accent);
+  transform: scale(1.08);
+}
+
+.past-file-check-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: var(--sh-sm);
+  z-index: 2;
+}
+
+.past-file-chip.selected .past-file-check-badge { display: flex; }
+
+/* ─────────── MODEL & GENERIC PICKERS ─────────── */
+.model-picker,
+.picker {
+  position: relative;
+  flex: none;
+}
+
+.model-picker-btn,
+.picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 13px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 210px;
+  overflow: hidden;
+  transition: all var(--fast);
+}
+
+.model-picker-btn > span,
+.picker-btn .picker-main,
+.picker-btn .picker-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-picker-btn:hover,
+.picker-btn:hover {
+  border-color: var(--border-2);
+  background: var(--surface3);
+}
+
+.model-picker-btn svg.chev,
+.picker-btn svg.chev {
+  opacity: 0.65;
+  margin-left: auto;
+  transition: transform var(--mid) var(--e);
+}
+
+.model-picker.open .model-picker-btn,
+.picker.open .picker-btn {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent-light);
+}
+
+.model-picker.open .model-picker-btn svg.chev,
+.picker.open .picker-btn svg.chev {
+  transform: rotate(180deg);
+}
+
+.model-picker-menu,
+.picker-menu {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  background: var(--glass-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r3);
+  padding: 6px;
+  min-width: 260px;
+  max-height: 350px;
+  overflow-y: auto;
+  z-index: 130;
+  box-shadow: var(--sh-lg);
+}
+
+.model-picker.open .model-picker-menu,
+.picker.open .picker-menu {
+  display: block;
+  animation: pop 0.16s var(--e-out) both;
+  transform-origin: bottom right;
+}
+
+.model-cat {
+  padding: 9px 11px 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.model-picker-item,
+.picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  transition: background var(--fast), color var(--fast);
+}
+
+.model-picker-item:hover,
+.picker-item:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.model-picker-item.active,
+.picker-item.active {
+  color: var(--accent-light);
+  background: var(--accent-dim);
+  font-weight: 600;
+}
+
+.model-picker-item svg,
+.picker-item svg {
+  color: var(--accent-light);
+  opacity: 0;
+  flex: none;
+}
+
+.model-picker-item.active svg,
+.picker-item.active svg {
+  opacity: 1;
+}
+
+/* ─────────── MODALS & TOAST NOTIFICATIONS ─────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(6, 8, 16, 0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fade 0.18s ease both;
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 430px;
+  width: 100%;
+  box-shadow: var(--sh-lg), var(--inner-glow);
+  animation: rise 0.25s var(--e-out) both;
+}
+
+.modal-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  border-radius: 15px;
+  font-size: 0;
+}
+
+.modal-icon::after {
+  content: "";
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+}
+
+.modal-icon.warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+}
+
+.modal-icon.warn::after {
+  -webkit-mask: var(--ic-alert) center/contain no-repeat;
+  mask: var(--ic-alert) center/contain no-repeat;
+}
+
+.modal-icon.ask {
+  color: var(--accent-light);
+  background: var(--accent-dim);
+}
+
+.modal-icon.ask::after {
+  -webkit-mask: var(--ic-ask) center/contain no-repeat;
+  mask: var(--ic-ask) center/contain no-repeat;
+}
+
+.modal h2 {
+  font-family: var(--display);
+  font-size: 19.5px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+
+.modal p {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-btns button {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: var(--r2);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all var(--fast);
+}
+
+.btn-primary {
+  background: var(--grad-btn);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-danger {
+  background: var(--error);
+  color: #fff;
+}
+
+.btn-danger:hover { filter: brightness(1.08); }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border) !important;
+}
+
+.btn-secondary:hover {
+  background: var(--surface3);
+  color: var(--text);
+}
+
+/* Toasts */
+.toast-wrap {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 350;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 9px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--glass-strong);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r3);
+  padding: 11px 15px;
+  font-size: 13.2px;
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: var(--sh-lg);
+  max-width: 320px;
+  width: max-content;
+  animation: toast-in 0.28s var(--e-out) both;
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast strong {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--text3);
+  line-height: 1;
+}
+
+.toast .toast-msg {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.toast.info strong { background: var(--accent); }
+.toast.success strong { background: var(--success); }
+.toast.error strong { background: var(--error); }
+.toast.warn strong { background: var(--warn); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(6, 8, 16, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ─────────── RESPONSIVE BREAKPOINTS ─────────── */
+@media (max-width: 768px) {
+  :root {
+    --chip-w: calc((100% - 32px) / 5);
+    --chip-h: 80px;
+  }
+
+  .att-chip img { height: 52px; }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 60;
+    transform: translateX(-100%);
+    width: min(var(--sidebar-w), 86vw);
+    min-width: unset;
+    box-shadow: var(--sh-lg);
+  }
+
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.active { display: block; }
+  .sidebar-kbd { display: none; }
+
+  .chat-header {
+    padding: 10px 14px;
+    min-height: 54px;
+  }
+
+  .header-workspace-pill { display: none; }
+  .hamburger { display: flex; }
+  .topbar-titles { display: block; }
+  .header-action-label { display: none; }
+  .header-action-btn { padding: 0 9px; }
+
+  .app { flex-direction: column; height: 100dvh; }
+  .chat-area { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .messages { flex: 1; min-height: 0; overflow: hidden; }
+  .messages-scroll { scrollbar-gutter: auto; }
+  .messages-inner { padding: 16px 14px 32px; }
+
+  .empty-state h3 { font-size: 22px; }
+  .empty-chips { grid-template-columns: 1fr; gap: 9px; }
+  .empty-chip { padding: 13px 14px; }
+
+  .input-area {
+    padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+    flex-shrink: 0;
+  }
+
+  .input-box {
+    border-radius: 20px;
+    padding: 12px 12px 10px;
+  }
+
+  .input-box textarea {
+    font-size: 16px;
+    line-height: 23px;
+    min-height: 23px;
+    height: 23px;
+  }
+
+  .tool-pill-label { display: none; }
+  .tool-pill-btn { padding: 0 10px; }
+
+  .msg-body,
+  .msg.user .msg-body { max-width: 100%; }
+  .msg { gap: 10px; }
+  .msg-image-card { max-width: min(280px, 85vw); }
+  .att-chip.msg-att { width: 150px; flex: 0 0 150px; }
+  .att-chip.msg-att img,
+  .att-chip.msg-att .att-chip-fallback { height: 118px; }
+
+  .setup-card { padding: 34px 24px; }
+  .modal { padding: 24px 20px; }
+  .settings-popup { right: 12px; top: 58px; min-width: 248px; }
+  .model-picker-btn { max-width: 132px; }
+
+  .toast-wrap {
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: 10px;
+  }
+  .toast { max-width: min(82vw, 310px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::before { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP / AUTH SCREEN -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <span class="setup-logo"></span>
+    <div class="setup-badge">AI WORKSPACE</div>
+    <h1>Genspark AI</h1>
+    <p>Çalışma alanınıza erişmek için güvenlik şifresini girin</p>
+    <div class="setup-label">Erişim Şifresi</div>
+    <input class="setup-input" type="password" id="setupPassword" placeholder="Şifrenizi yazın..."
+      onkeydown="if(event.key==='Enter')initSession()">
+    <button class="setup-btn" id="setupBtn" onclick="initSession()">Oturumu Başlat</button>
+    <div class="setup-status" id="setupStatus"></div>
+  </div>
+</div>
+
+<!-- MAIN APPLICATION -->
+<div class="app" id="app" style="display:none">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo"></span>
+        <div class="sidebar-title">Genspark<span>AI</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-new-wrap">
+      <button class="sidebar-btn sidebar-new" onclick="newChat()">
+        <span class="sidebar-new-left">
+          <span class="sidebar-new-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          </span>
+          Yeni Sohbet
+        </span>
+        <span class="sidebar-kbd">Yeni</span>
+      </button>
+    </div>
+
+    <div class="sidebar-section">Sohbet Geçmişi</div>
+    <div class="conv-list" id="convList">
+      <div class="conv-empty">Henüz konuşma yok</div>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-account" id="accountBox">
+      <div class="account-label" id="accountLabel">Giriş Yapılmadı</div>
+      <div class="account-row">
+        <div class="account-email" id="accountEmail">
+          <span class="account-dot" id="accountDot"></span><span class="account-email-text">Yükleniyor...</span>
+        </div>
+        <button class="account-create-btn" id="createAccountBtn" onclick="quickCreateAccount()" title="Yeni Hesap / Giriş Yap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-btn danger" onclick="logout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Oturumu Kapat
+      </button>
+    </div>
+  </aside>
+
+  <!-- CHAT WORKSPACE -->
+  <main class="chat-area">
+    <div class="chat-header" id="chatHeader">
+      <button class="hamburger" onclick="openSidebar()" aria-label="Menüyü Aç">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
+      </button>
+
+      <div class="header-workspace-pill">
+        <span class="header-workspace-dot"></span>
+        <span>Genspark Studio</span>
+        <span class="header-workspace-sep">/</span>
+        <span class="header-model-badge" id="desktopModelBadge">—</span>
+      </div>
+
+      <div class="topbar-titles">
+        <div class="topbar-title">Genspark AI</div>
+        <div class="topbar-model" id="topbarModel">—</div>
+      </div>
+
+      <div class="chat-header-right">
+        <button class="header-action-btn" id="downloadBtn" title="Sohbeti İndir" onclick="toggleDownloadMenu(event)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="header-action-label">Dışa Aktar</span>
+        </button>
+        <div class="download-menu" id="downloadMenu">
+          <button onclick="downloadChat('html')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            HTML sayfası olarak indir
+          </button>
+          <button onclick="downloadChat('txt')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Düz metin (.txt) indir
+          </button>
+          <button onclick="downloadChat('json')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            JSON verisi olarak indir
+          </button>
+        </div>
+
+        <button class="header-action-btn" id="settingsBtn" title="Ayarlar" onclick="toggleSettingsPopup(event)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          <span class="header-action-label">Tercihler</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SETTINGS POPUP -->
+    <div class="settings-popup" id="settingsPopup">
+      <div class="settings-popup-title">Görünüm ve Tercihler</div>
+
+      <div class="settings-section-label">Görünüm Teması</div>
+      <button class="settings-row-btn" onclick="toggleTheme()">
+        <svg id="settingsThemeIconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="settingsThemeIconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <span id="settingsThemeLabel">Karanlık Mod</span>
+      </button>
+
+      <div class="settings-section-label">Sohbet Deneyimi</div>
+      <div class="settings-row">
+        <span class="settings-row-text">Sistem bilgi mesajları</span>
+        <label class="switch">
+          <input type="checkbox" id="sysLogToggle" onchange="saveSysLogPref()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-text">Uzun yanıtları daralt</span>
+        <label class="switch">
+          <input type="checkbox" id="collapseToggle" onchange="saveCollapsePref()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-text">Otomatik aşağı kaydır</span>
+        <label class="switch">
+          <input type="checkbox" id="autoScrollToggle" onchange="saveAutoScroll()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-section-label">Otomasyon & Ekler</div>
+      <div class="settings-row">
+        <span class="settings-row-text">Geçmiş dosyaları otomatik ekle</span>
+        <label class="switch">
+          <input type="checkbox" id="autoAttachToggle" onchange="saveAutoAttachPref()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-text">Otomatik hesap kurtarma</span>
+        <label class="switch">
+          <input type="checkbox" id="autoModeToggle" onchange="saveAutoMode()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- MESSAGES STREAM -->
+    <div class="messages" id="messages">
+      <div class="messages-scroll" id="messagesScroll">
+        <div class="messages-inner" id="messagesInner"></div>
+      </div>
+      <button class="scroll-bottom-btn" id="scrollBottomBtn" title="En aşağı in" onclick="scrollBottom(true)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+      </button>
+    </div>
+
+    <!-- COMMAND INPUT DOCK -->
+    <div class="input-area">
+      <div class="input-inner">
+        <div class="input-box" id="inputBox">
+          <div class="attachments-preview-container" id="attachPreviewContainer">
+            <div class="attachments-preview" id="attachPreview"></div>
+          </div>
+
+          <textarea id="msgInput" placeholder="Bir soru sorun, kod yazdırın veya dosya analiz ettirin..." rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+
+          <div class="input-actions">
+            <input type="file" id="fileInput" style="display:none" multiple onchange="handleFiles(this)">
+            <div class="attach-picker" id="attachPicker">
+              <button class="tool-pill-btn" title="Dosya veya görsel ekle" onclick="toggleAttachMenu(event)" id="attachBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <span class="tool-pill-label">Dosya</span>
+              </button>
+              <div class="attach-menu" id="attachMenu">
+                <button type="button" onclick="uploadNewFileFromDevice(event)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Cihazdan Dosya Yükle
+                </button>
+                <button type="button" onclick="openPastFilesModal(event)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                  Geçmişteki Dosyalardan Seç
+                </button>
+              </div>
+            </div>
+
+            <button class="tool-pill-btn" id="webSearchBtn" title="Canlı Web Araması" onclick="toggleWebSearch()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span class="tool-pill-label">Web Arama</span>
+            </button>
+
+            <div class="input-actions-right">
+              <div class="model-picker" id="modelPicker">
+                <button class="model-picker-btn" onclick="toggleModelPicker(event)" title="Model seç">
+                  <span id="modelPickerLabel">Model</span>
+                  <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="model-picker-menu" id="modelPickerMenu"></div>
+              </div>
+
+              <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Gönder">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- CREDIT ERROR MODAL -->
+<div class="modal-overlay" id="creditModal" style="display:none">
+  <div class="modal">
+    <span class="modal-icon warn"></span>
+    <h2>Kredi Tükendi</h2>
+    <p>Bu hesabın kullanım kredisi doldu. Mevcut sohbet geçmişiniz korunarak otomatik olarak yeni bir hesaba geçiş yapılacaktır.</p>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('creditModal')">Kapat</button>
+      <button class="btn-primary" id="creditResetBtn" onclick="resetFromCredit()">Yeniden Giriş Yap</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal-overlay" id="confirmModal" style="display:none" onclick="closeConfirmModal(false)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="modal-icon ask"></span>
+    <h2 id="confirmModalTitle">Emin misin?</h2>
+    <p id="confirmModalText">Bu işlemi onaylıyor musun?</p>
+    <div class="modal-btns">
+      <button class="btn-secondary" id="confirmModalCancel" onclick="closeConfirmModal(false)">Vazgeç</button>
+      <button class="btn-danger" id="confirmModalOk" onclick="closeConfirmModal(true)">Onayla</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAST FILES MODAL -->
+<div class="modal-overlay" id="pastFilesModal" style="display:none" onclick="closeModal('pastFilesModal')">
+  <div class="modal" style="max-width:560px;width:95%;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <h2 style="font-size:18.5px;margin-bottom:3px;">Geçmiş Dosyalar</h2>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:0;">Mesajınıza eklemek istediğiniz dosya veya görsellere tıklayın</p>
+      </div>
+      <button class="icon-btn" onclick="closeModal('pastFilesModal')" title="Kapat" style="margin-left:auto;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="past-files-grid" id="pastFilesGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text3);font-size:13px;">Yükleniyor...</div>
+    </div>
+
+    <div class="modal-btns" style="margin-top:12px;">
+      <button class="btn-secondary" onclick="closeModal('pastFilesModal')">Kapat</button>
+      <button class="btn-primary" onclick="closeModal('pastFilesModal')">Seçimi Tamamla</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────
+const S = {
+  models: [],
+  model: '',
+  email: '',
+  accountCreated: false,
+  msgCount: 0,
+  pendingAtts: [],
+  streaming: false,
+  stopping: false,
+  abortController: null,
+  activeConvIdx: null,
+  activeConvId: null,
+  webSearch: false,
+  balance: 0,
+  autoRetries: 0,
+  autoRetryAt: 0,
+};
+
+// ─── SHARED MARKUP ────────────────────────────────────────────────────────
+const EMPTY_STATE_HTML = `
+  <div class="empty-state" id="emptyState">
+    <div class="empty-orb-wrap">
+      <div class="empty-orb"></div>
+    </div>
+    <h3>Bugün ne üretmek istersin?</h3>
+    <p>Karmaşık problemleri çözün, temiz kodlar yazın, metinlerinizi kusursuzlaştırın veya dosyalarınızı analiz edin.</p>
+    <div class="empty-chips">
+      <button class="empty-chip" data-prompt="Bir konuyu basitçe açıkla" onclick="useSuggestion(this)">
+        <span class="empty-chip-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.8 15-3.5 2"/><path d="m20.7 17-3.5-2"/><path d="M6.8 9 3.3 7"/><path d="m20.7 7-3.5 2"/><circle cx="12" cy="12" r="4"/></svg>
+        </span>
+        <span class="empty-chip-content">
+          <span class="empty-chip-title">Bir konuyu basitçe açıkla</span>
+          <span class="empty-chip-desc">Karmaşık kavramları net örneklerle özetle</span>
+        </span>
+      </button>
+      <button class="empty-chip" data-prompt="Kodumdaki hatayı bul" onclick="useSuggestion(this)">
+        <span class="empty-chip-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </span>
+        <span class="empty-chip-content">
+          <span class="empty-chip-title">Kodumdaki hatayı bul</span>
+          <span class="empty-chip-desc">Hata ayıklama ve performans iyileştirmesi</span>
+        </span>
+      </button>
+      <button class="empty-chip" data-prompt="Metnimi düzenle" onclick="useSuggestion(this)">
+        <span class="empty-chip-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </span>
+        <span class="empty-chip-content">
+          <span class="empty-chip-title">Metnimi düzenle</span>
+          <span class="empty-chip-desc">Daha akıcı, profesyonel ve etkileyici üslup</span>
+        </span>
+      </button>
+      <button class="empty-chip" data-prompt="Bana bir plan çıkar" onclick="useSuggestion(this)">
+        <span class="empty-chip-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
+        <span class="empty-chip-content">
+          <span class="empty-chip-title">Bana bir plan çıkar</span>
+          <span class="empty-chip-desc">Adım adım yol haritası ve strateji oluştur</span>
+        </span>
+      </button>
+    </div>
+  </div>`;
+
+const ICON_COPY  = '<svg class="ic-copy" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11.5" height="11.5" rx="2.6"/><path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h8.5A1.5 1.5 0 0 1 15 5v.5"/></svg>';
+const ICON_CHECK = '<svg class="ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6.5-11 11-5-5"/></svg>';
+const ICON_TICK  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6.5-11 11-5-5"/></svg>';
+const ICON_TO_PROMPT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5v6a4 4 0 0 0 4 4h12"/><path d="m15.5 10 4.5 4.5-4.5 4.5"/></svg>';
+
+const ICON_SEND = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>';
+const ICON_STOP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="7" y="7" width="10" height="10" rx="2.6"/></svg>';
+const ICON_SPIN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="animation:spin 1s linear infinite;transform-origin:center"><circle cx="12" cy="12" r="9" stroke-dasharray="32 10" fill="none"/></svg>';
+
+function useSuggestion(el) {
+  const input = document.getElementById('msgInput');
+  const promptText = el.getAttribute('data-prompt') || (el.textContent || '').trim();
+  input.value = promptText;
+  autoResize(input);
+  input.focus();
+}
+
+// ─── URL / HISTORY HELPERS ────────────────────────────────────────────────
+function getUrlConvId() {
+  const path = window.location.pathname;
+  if (path.startsWith('/chat/')) {
+    const id = path.slice(6).trim();
+    if (id) return id;
+  }
+  return new URLSearchParams(window.location.search).get('conv') || null;
+}
+
+function setUrlConvId(convId) {
+  const newPath = convId ? `/chat/${convId}` : '/';
+  if (window.location.pathname !== newPath || window.location.search) {
+    window.history.pushState({convId}, '', newPath);
+  }
+}
+
+window.addEventListener('popstate', async (e) => {
+  const convId = (e.state && e.state.convId) || getUrlConvId();
+  if (convId && document.getElementById('app').style.display !== 'none') {
+    await loadConversationById(convId);
+  } else if (!convId && document.getElementById('app').style.display !== 'none') {
+    await newChatSilent();
+  }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+async function boot() {
+  document.getElementById('messagesInner').innerHTML = EMPTY_STATE_HTML;
+
+  const mr = await fetch('/api/models').then(r => r.json()).catch(() => ({models: []}));
+  S.models = mr.models || [];
+
+  autoResize(document.getElementById('msgInput'));
+
+  const st = await fetch('/api/status').then(r => r.json()).catch(() => null);
+  if (st && st.initialized) {
+    S.email = st.email;
+    S.model = st.model;
+    S.balance = st.balance || st.total_credits || 0;
+    S.msgCount = st.message_count;
+    S.accountCreated = !!st.account_created;
+    enterApp();
+    updateSidebar();
+
+    await refreshConversations();
+    const urlConvId = getUrlConvId();
+    if (urlConvId) {
+      await loadConversationById(urlConvId);
+    } else {
+      await loadHistory();
+    }
+  } else {
+    document.getElementById('setupOverlay').style.display = 'flex';
+  }
+}
+
+// ─── SHARED PICKER LOGIC ──────────────────────────────────────────────────
+function closeAllPickers() {
+  document.querySelectorAll('.picker.open,.model-picker.open').forEach(p => p.classList.remove('open'));
+  closeAttachMenu();
+}
+
+function togglePicker(e, id) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById(id);
+  if (!p) return;
+  const willOpen = !p.classList.contains('open');
+  closeAllPickers();
+  if (willOpen) p.classList.add('open');
+}
+
+function buildPickerMenu(menuEl, items, currentId, onSelect) {
+  if (!menuEl) return;
+  menuEl.innerHTML = '';
+  items.forEach(it => {
+    const row = document.createElement('div');
+    row.className = 'picker-item' + (it.id === currentId ? ' active' : '');
+
+    const label = document.createElement('span');
+    label.className = 'picker-item-label';
+    if (it.sub) {
+      const b = document.createElement('b');
+      b.textContent = it.main;
+      const em = document.createElement('em');
+      em.textContent = it.sub;
+      label.appendChild(b);
+      label.appendChild(em);
+    } else {
+      label.textContent = it.main;
+    }
+
+    row.appendChild(label);
+    row.insertAdjacentHTML('beforeend', ICON_TICK);
+    row.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      closeAllPickers();
+      onSelect(it.id);
+    });
+    menuEl.appendChild(row);
+  });
+}
+
+// ─── MODEL PICKER ─────────────────────────────────────────────────────────
+function modelLabel(id) {
+  const m = S.models.find(x => x.id === id);
+  return m ? m.label : id;
+}
+
+function renderModelPicker() {
+  const currentLabel = modelLabel(S.model) || 'Model';
+  document.getElementById('modelPickerLabel').textContent = currentLabel;
+  const desktopBadge = document.getElementById('desktopModelBadge');
+  if (desktopBadge) desktopBadge.textContent = currentLabel;
+
+  const menu = document.getElementById('modelPickerMenu');
+  let html = '';
+  let currentCat = '';
+  S.models.forEach(m => {
+    if (m.category && m.category !== currentCat) {
+      currentCat = m.category;
+      html += `<div class="model-cat">${escHtml(currentCat)}</div>`;
+    }
+    html += `<div class="model-picker-item${m.id === S.model ? ' active' : ''}" onclick="selectModel('${escHtml(m.id)}')">
+      <span>${escHtml(m.label)}</span>
+      ${ICON_TICK}
+    </div>`;
+  });
+  menu.innerHTML = html;
+}
+
+function toggleModelPicker(e) {
+  togglePicker(e, 'modelPicker');
+}
+
+async function selectModel(id) {
+  closeAllPickers();
+  if (id === S.model) return;
+  await changeModel(id);
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.picker, .model-picker, .attach-picker')) {
+    closeAllPickers();
+  }
+  document.querySelectorAll('.conv-menu').forEach(m => m.remove());
+  document.querySelectorAll('.conv-item.menu-open').forEach(i => i.classList.remove('menu-open'));
+});
+
+// ─── SESSION INIT ─────────────────────────────────────────────────────────
+async function initSession() {
+  const btn = document.getElementById('setupBtn');
+  const status = document.getElementById('setupStatus');
+  const password = document.getElementById('setupPassword').value;
+
+  if (!password) {
+    status.className = 'setup-status error';
+    status.textContent = 'Lütfen şifreyi girin.';
+    return;
+  }
+
+  btn.disabled = true;
+  status.className = 'setup-status';
+  status.innerHTML = `<div class="dot-anim"><span></span><span></span><span></span></div> Giriş yapılıyor...`;
+
+  try {
+    const r = await fetch('/api/init', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password})
+    });
+
+    if (!r.ok) {
+      const errMsg = await readError(r);
+      status.className = 'setup-status error';
+      status.textContent = errMsg;
+      btn.disabled = false;
+      return;
+    }
+
+    const d = await r.json();
+
+    if (d.success) {
+      S.email = d.email || '';
+      if (d.balance !== undefined) S.balance = d.balance;
+      S.model = d.model;
+      S.msgCount = 0;
+      S.accountCreated = !!d.account_created;
+      enterApp();
+      updateSidebar();
+      await refreshConversations();
+      const urlConvId = getUrlConvId();
+      if (urlConvId) {
+        await loadConversationById(urlConvId);
+      } else {
+        await loadHistory();
+      }
+      autoResize(document.getElementById('msgInput'));
+    } else {
+      status.className = 'setup-status error';
+      status.textContent = d.error || 'Bir hata oluştu.';
+      btn.disabled = false;
+    }
+  } catch (e) {
+    status.className = 'setup-status error';
+    status.textContent = 'Bağlantı hatası: ' + e.message;
+    btn.disabled = false;
+  }
+}
+
+function enterApp() {
+  document.getElementById('setupOverlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+}
+
+function updateSidebar() {
+  const labelEl = document.getElementById('accountLabel');
+  const emailEl = document.getElementById('accountEmail');
+  if (S.accountCreated && S.email) {
+    labelEl.textContent = 'Aktif Oturum';
+    emailEl.innerHTML = `<span class="account-dot"></span><span class="account-email-text">${escHtml(S.email)}</span>`;
+  } else if (S.accountCreated) {
+    labelEl.textContent = 'Aktif Oturum';
+    emailEl.innerHTML = `<span class="account-dot"></span><span class="account-email-text">Hesap aktif</span>`;
+  } else {
+    labelEl.textContent = 'Giriş Yapılmadı';
+    emailEl.innerHTML = `<span class="account-dot" style="background:var(--text3);box-shadow:none;animation:none"></span><span class="account-email-text">Giriş bekleniyor</span>`;
+  }
+  const currentLbl = modelLabel(S.model);
+  document.getElementById('topbarModel').textContent = currentLbl;
+  const desktopBadge = document.getElementById('desktopModelBadge');
+  if (desktopBadge) desktopBadge.textContent = currentLbl || '—';
+  renderModelPicker();
+}
+
+// ─── LOGOUT ───────────────────────────────────────────────────────────────
+async function logout() {
+  if (!(await showConfirmModal({
+    title: 'Çıkış yapılsın mı?',
+    message: 'Mevcut oturumu kapatmak üzeresiniz.',
+    confirmText: 'Çıkış Yap',
+    cancelText: 'İptal',
+    destructive: true
+  }))) return;
+  try {
+    await fetch('/api/logout', {method: 'POST'});
+  } catch (e) {}
+  window.location.href = '/';
+}
+
+// ─── CONVERSATION LIST ────────────────────────────────────────────────────
+async function refreshConversations() {
+  try {
+    const r = await fetch('/api/conversations').then(r => r.json());
+    renderConversationList(r.conversations || [], S.activeConvId);
+  } catch (e) {}
+}
+
+function renderConversationList(convs, activeConvId) {
+  const el = document.getElementById('convList');
+  if (!convs || convs.length === 0) {
+    el.innerHTML = '<div class="conv-empty">Henüz konuşma yok</div>';
+    return;
+  }
+  el.innerHTML = convs.map(c => {
+    const cid = c.conv_id || String(c.idx);
+    const isActive = cid === activeConvId || String(c.idx) === activeConvId;
+    return `
+    <div class="conv-item${isActive ? ' active' : ''}" data-conv-id="${escHtml(cid)}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" onclick="loadConversationById('${escHtml(cid)}')"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="conv-item-title" onclick="loadConversationById('${escHtml(cid)}')">${escHtml(c.title)}</span>
+      <span class="conv-item-count" onclick="loadConversationById('${escHtml(cid)}')">${c.count !== undefined ? c.count : (c.msg_count !== undefined ? c.msg_count : 0)}</span>
+      <button class="conv-item-menu-btn" onclick="toggleConvMenu(event, '${escHtml(cid)}')" title="Seçenekler">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+      </button>
+    </div>
+  `;
+  }).join('');
+}
+
+function toggleConvMenu(e, convId) {
+  e.stopPropagation();
+  const item = e.currentTarget.closest('.conv-item');
+  const wasOpen = item.classList.contains('menu-open');
+
+  document.querySelectorAll('.conv-menu').forEach(m => m.remove());
+  document.querySelectorAll('.conv-item.menu-open').forEach(i => i.classList.remove('menu-open'));
+
+  if (wasOpen) return;
+
+  item.classList.add('menu-open');
+  const menu = document.createElement('div');
+  menu.className = 'conv-menu';
+  menu.innerHTML = `
+    <button onclick="startRenameConv(event, '${escHtml(convId)}')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      Yeniden Adlandır
+    </button>
+    <button class="danger" onclick="deleteConv(event, '${escHtml(convId)}')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      Sohbeti Sil
+    </button>
+  `;
+  item.appendChild(menu);
+}
+
+function startRenameConv(e, convId) {
+  e.stopPropagation();
+  document.querySelectorAll('.conv-menu').forEach(m => m.remove());
+
+  const item = document.querySelector(`.conv-item[data-conv-id="${convId}"]`);
+  if (!item) return;
+  item.classList.remove('menu-open');
+
+  const titleEl = item.querySelector('.conv-item-title');
+  const current = titleEl.textContent;
+  const input = document.createElement('input');
+  input.className = 'conv-item-title-input';
+  input.value = current;
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
+  input.addEventListener('click', ev => ev.stopPropagation());
+
+  let finished = false;
+  const finish = async (save) => {
+    if (finished) return;
+    finished = true;
+    const val = input.value.trim();
+    if (save && val && val !== current) {
+      try {
+        const r = await fetch('/api/conversation/rename', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({conv_id: convId, title: val})
+        });
+        const d = await r.json();
+        if (!d.success) toast(d.error || 'Yeniden adlandırılamadı', 'error');
+      } catch (err) {
+        toast('Bağlantı hatası', 'error');
+      }
+    }
+    await refreshConversations();
+  };
+
+  input.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+  });
+  input.addEventListener('blur', () => finish(true));
+}
+
+async function deleteConv(e, convId) {
+  e.stopPropagation();
+  document.querySelectorAll('.conv-menu').forEach(m => m.remove());
+  if (!(await showConfirmModal({
+    title: 'Konuşma silinsin mi?',
+    message: 'Bu sohbet geçmişi listeden kalıcı olarak kaldırılacak.',
+    confirmText: 'Sil',
+    cancelText: 'İptal',
+    destructive: true
+  }))) return;
+
+  try {
+    const r = await fetch('/api/conversation/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({conv_id: convId})
+    });
+    const d = await r.json();
+    if (d.success) {
+      if (S.activeConvId === convId) {
+        stopResumePolling();
+        S.activeConvId = null;
+        S.activeConvIdx = null;
+        setUrlConvId(null);
+        clearMessages();
+      }
+      await refreshConversations();
+    } else {
+      toast(d.error || 'Silinemedi', 'error');
+    }
+  } catch (err) {
+    toast('Bağlantı hatası', 'error');
+  }
+}
+
+async function loadConversationById(convId) {
+  try {
+    const body = isNaN(convId) ? {conv_id: convId} : {idx: Number(convId)};
+    const r = await fetch('/api/conversation/load', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.success) {
+      S.msgCount = d.message_count;
+      S.activeConvIdx = d.idx !== undefined ? d.idx : S.activeConvIdx;
+      S.activeConvId = d.conv_id || convId;
+      setUrlConvId(S.activeConvId);
+      updateSidebar();
+      await loadHistory();
+      await refreshConversations();
+      closeSidebar();
+    } else {
+      toast(d.error || 'Konuşma yüklenemedi', 'error');
+    }
+  } catch (e) {
+    toast('Bağlantı hatası', 'error');
+  }
+}
+
+async function loadConversation(idx) {
+  await loadConversationById(String(idx));
+}
+
+function escHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getDisplayUrl(att) {
+  if (!att) return '';
+  const u = typeof att === 'string' ? att : (att.url || '');
+  if (!u) return '';
+  if (u.startsWith('data:')) return u;
+  const fn = typeof att === 'object' ? (att.filename || att.name || '') : '';
+  return `/api/file_preview?url=${encodeURIComponent(u)}&name=${encodeURIComponent(fn)}`;
+}
+
+function getCleanFileName(item) {
+  if (!item) return 'Dosya';
+  if (typeof item === 'object') {
+    const raw = item.filename || item.name;
+    if (raw && String(raw).trim() && String(raw).trim() !== 'download') {
+      let n = String(raw).trim();
+      if (n.includes('%2F') || n.includes('%2f')) n = decodeURIComponent(n).split('/').pop();
+      else if (n.includes('/')) n = n.split('/').pop();
+      if (n && n !== 'download') return n;
+    }
+  }
+  const u = typeof item === 'string' ? item : (item.url || '');
+  if (!u) return 'Dosya';
+  try {
+    const decoded = decodeURIComponent(u);
+    const last = decoded.split('?')[0].split('#')[0].split('/').pop();
+    if (last && last !== 'download') return last;
+  } catch {}
+  return (typeof item === 'object' && (item.filename || item.name)) || 'Dosya';
+}
+
+function isImageItem(item) {
+  if (!item) return false;
+  if (typeof item === 'object') {
+    const t = item.mediaType || item.type || '';
+    if (t.startsWith('image/')) return true;
+    const fn = item.filename || item.name || '';
+    if (/\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(fn.split('?')[0].split('#')[0])) return true;
+    const u = item.url || '';
+    if (String(u).startsWith('data:image/')) return true;
+    if (/\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(String(u).split('?')[0].split('#')[0])) return true;
+    if (String(u).includes('/image')) return true;
+    return false;
+  }
+  const str = String(item).split('?')[0].split('#')[0];
+  if (str.startsWith('data:image/')) return true;
+  return /\.(jpe?g|png|webp|gif|svg|bmp|ico)$/i.test(str) || str.includes('/image');
+}
+
+function collectAutoAttachFiles(pendingAtts = []) {
+  const existingUrls = new Set((pendingAtts || []).map(a => a.url).filter(Boolean));
+  const result = [...(pendingAtts || [])];
+
+  const attChips = document.querySelectorAll('#messagesInner .msg.user .att-chip.msg-att');
+  attChips.forEach(chip => {
+    const img = chip.querySelector('img');
+    let u = img ? img.getAttribute('src') : '';
+    if (!u) {
+      const onclick = chip.getAttribute('onclick') || '';
+      const m = onclick.match(/window\.open\('([^']+)'/);
+      if (m) u = m[1];
+    }
+    if (u && u.startsWith('/api/file_preview?')) {
+      try {
+        const parsed = new URL(u, window.location.origin);
+        u = parsed.searchParams.get('url') || u;
+      } catch {}
+    }
+    if (u && !existingUrls.has(u)) {
+      existingUrls.add(u);
+      const nameEl = chip.querySelector('.att-chip-name');
+      const fullName = chip.getAttribute('title') || (nameEl ? nameEl.textContent.trim() : '');
+      const name = fullName || getCleanFileName(u);
+      const isImg = isImageItem({ filename: name, url: u });
+      result.push({
+        url: u,
+        filename: name,
+        mediaType: isImg ? 'image/jpeg' : 'application/octet-stream'
+      });
+    }
+  });
+
+  const aiImgs = document.querySelectorAll('#messagesInner .msg.ai .msg-image-card img, #messagesInner .msg.ai .msg-images img');
+  aiImgs.forEach(img => {
+    const u = img.getAttribute('src');
+    if (u && !existingUrls.has(u)) {
+      existingUrls.add(u);
+      const name = getCleanFileName(u) || 'Uretilen_Gorsel.png';
+      result.push({
+        url: u,
+        filename: name,
+        mediaType: 'image/png'
+      });
+    }
+  });
+
+  return result;
+}
+
+function syncAutoAttachPreview() {
+  if (!isAutoAttach()) {
+    const remaining = S.pendingAtts.filter(a => !a._autoAttached);
+    if (remaining.length !== S.pendingAtts.length) {
+      S.pendingAtts = remaining;
+      renderAttachPreview();
+    }
+    return;
+  }
+  const autoFiles = collectAutoAttachFiles(S.pendingAtts.filter(a => !a._autoAttached));
+  const manualAtts = S.pendingAtts.filter(a => !a._autoAttached);
+  const existingUrls = new Set(manualAtts.map(a => a.url).filter(Boolean));
+  const merged = [...manualAtts];
+
+  for (const af of autoFiles) {
+    if (!existingUrls.has(af.url)) {
+      existingUrls.add(af.url);
+      merged.push({
+        ...af,
+        _autoAttached: true
+      });
+    }
+  }
+  S.pendingAtts = merged;
+  renderAttachPreview();
+}
+
+function truncateFileName(name, maxLen = 22) {
+  if (!name) return '';
+  if (name.length <= maxLen) return name;
+  const parts = name.split('.');
+  if (parts.length > 1) {
+    const ext = '.' + parts.pop();
+    const base = parts.join('.');
+    const keepBase = maxLen - ext.length - 1;
+    if (keepBase > 3) {
+      return base.slice(0, keepBase) + '…' + ext;
+    }
+  }
+  return name.slice(0, maxLen - 1) + '…';
+}
+
+// ─── SERVER RECONCILIATION ────────────────────────────────────────────────
+async function fetchServerHistory() {
+  try {
+    const r = await fetch('/api/history');
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+function lastAssistantTurn(h) {
+  if (!h) return null;
+  for (let i = h.length - 1; i >= 0; i--) if (h[i].role === 'assistant') return h[i];
+  return null;
+}
+
+function lastAiTextNode() {
+  const els = document.querySelectorAll('#messagesInner .msg.ai');
+  return els.length ? els[els.length - 1].querySelector('.msg-text') : null;
+}
+
+function ensureImages(msgEl, urls) {
+  if (!msgEl || !urls || !urls.length) return;
+  const body = msgEl.querySelector('.msg-body') || msgEl;
+  const have = new Set(Array.from(body.querySelectorAll('.msg-images img')).map(i => i.getAttribute('src')));
+  const missing = urls.filter(u => {
+    const src = typeof u === 'string' ? u : (u && u.url);
+    return src && !have.has(src);
+  });
+  if (!missing.length) return;
+
+  let div = body.querySelector('.msg-images');
+  if (!div) {
+    div = document.createElement('div');
+    div.className = 'msg-images';
+    const actions = body.querySelector('.msg-actions');
+    if (actions) body.insertBefore(div, actions);
+    else body.appendChild(div);
+  }
+
+  missing.forEach(item => {
+    const u = typeof item === 'string' ? item : (item.url || '');
+    const fullName = getCleanFileName(item);
+
+    const card = document.createElement('div');
+    card.className = 'msg-image-card';
+    card.innerHTML = `
+      <img src="${u}" alt="${escHtml(fullName)}" onclick="window.open('${u}','_blank')" draggable="false">
+    `;
+    div.appendChild(card);
+  });
+}
+
+async function reconcileWithServer(textNode, localText) {
+  const data = await fetchServerHistory();
+  if (!data || !data.history || !textNode) return localText || '';
+  const allAiNodes = document.querySelectorAll('#messagesInner .msg.ai');
+  const aiMsgEl = textNode.closest('.msg.ai');
+  const aiIndex = Array.from(allAiNodes).indexOf(aiMsgEl);
+
+  const asstTurns = data.history.filter(t => t.role === 'assistant');
+  const turn = (aiIndex >= 0 && aiIndex < asstTurns.length) ? asstTurns[aiIndex] : null;
+  if (!turn) return localText || '';
+
+  const serverText = turn.text || '';
+  const out = serverText.length > (localText || '').length ? serverText : (localText || '');
+  renderMarkdown(textNode, out, false);
+  const genImgs = turn.generatedImages || turn.images || [];
+  ensureImages(aiMsgEl, genImgs);
+  return out;
+}
+
+async function readError(resp) {
+  const raw = await resp.text().catch(() => '');
+  try {
+    const j = JSON.parse(raw);
+    return j.error || j.code || `Sunucu hatası (${resp.status})`;
+  } catch {
+    return `Sunucu hatası (${resp.status})`;
+  }
+}
+
+function guardAutoRetry() {
+  const now = Date.now();
+  if (!S.autoRetryAt || now - S.autoRetryAt > 120000) S.autoRetries = 0;
+  S.autoRetryAt = now;
+  S.autoRetries = (S.autoRetries || 0) + 1;
+  if (S.autoRetries > 3) {
+    addSystemLog('⛔ Otomatik kurtarma 3 kez denendi — durduruldu, manuel devam edin.');
+    return false;
+  }
+  return true;
+}
+
+// ─── RESUME POLLING ───────────────────────────────────────────────────────
+let resumeTimer = null, resumeStarted = 0;
+
+function stopResumePolling() {
+  if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
+}
+
+function startResumePolling() {
+  if (resumeTimer || S.streaming) return;
+  resumeStarted = Date.now();
+  addSystemLog('⏳ Yanıt arka planda sürüyor — senkronize ediliyor...');
+  let lastLen = -1;
+
+  resumeTimer = setInterval(async () => {
+    if (S.streaming || Date.now() - resumeStarted > 300000) { stopResumePolling(); return; }
+    const data = await fetchServerHistory();
+    if (!data) return;
+
+    const turn = lastAssistantTurn(data.history);
+    const node = lastAiTextNode();
+    if (turn && node) {
+      const t = turn.text || '';
+      if (t.length !== lastLen) {
+        lastLen = t.length;
+        renderMarkdown(node, t, !!data.streaming);
+        const genImgs = turn.generatedImages || turn.images || [];
+        ensureImages(node.closest('.msg'), genImgs);
+        scrollBottom();
+      }
+      if (!data.streaming) renderMarkdown(node, t, false);
+    }
+    if (!data.streaming) { stopResumePolling(); await refreshConversations(); }
+  }, 1200);
+}
+
+// ─── HISTORY LOAD ─────────────────────────────────────────────────────────
+async function loadHistory() {
+  const r = await fetch('/api/history').then(r => r.json()).catch(() => ({history: []}));
+  const inner = document.getElementById('messagesInner');
+  inner.innerHTML = '';
+
+  if (r.conv_id) {
+    S.activeConvId = r.conv_id;
+    setUrlConvId(S.activeConvId);
+  }
+
+  if (!r.history || r.history.length === 0) {
+    stopResumePolling();
+    inner.innerHTML = EMPTY_STATE_HTML;
+    return;
+  }
+
+  r.history.forEach(turn => {
+    const role = turn.role === 'user' ? 'user' : 'ai';
+    const atts = turn.attachments || [];
+    const genImgs = turn.generatedImages || (role === 'ai' ? (turn.images || []) : []);
+    appendMessage(role, turn.text, atts, genImgs);
+  });
+  scrollBottom();
+
+  if (r.streaming) startResumePolling(); else stopResumePolling();
+  syncAutoAttachPreview();
+}
+
+// ─── STOP STREAMING ───────────────────────────────────────────────────────
+async function stopStreaming() {
+  if (!S.streaming || S.stopping) return;
+  S.stopping = true;
+  setSendDisabled(true);
+
+  try {
+    await fetch('/api/abort', { method: 'POST' });
+  } catch (e) {
+    console.error('Abort request failed:', e);
+  }
+
+  setTimeout(() => {
+    if (S.streaming && S.stopping && S.abortController) {
+      console.warn('Abort timeout: forcing connection close.');
+      S.abortController.abort();
+    }
+  }, 8000);
+}
+
+// ─── SEND MESSAGE ─────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const msg = input.value.trim();
+  if (S.streaming) {
+    stopStreaming();
+    return;
+  }
+  if (!msg) return;
+
+  if (!S.accountCreated) {
+    toast('Önce sol alttan giriş yapın', 'warn');
+    return;
+  }
+
+  stopResumePolling();
+  input.value = '';
+  autoResize(input);
+
+  let atts = [...S.pendingAtts];
+  if (isAutoAttach()) {
+    atts = collectAutoAttachFiles(atts);
+  }
+  S.pendingAtts = [];
+  renderAttachPreview();
+
+  hideEmpty();
+
+  const existingFailedUserEl = getFailedUserMsgEl();
+  let userEl;
+  if (existingFailedUserEl) {
+    userEl = existingFailedUserEl;
+    updateUserMessage(userEl, msg, atts);
+    markUserMsgRetrying(userEl);
+  } else {
+    userEl = appendMessage('user', msg, atts, []);
+  }
+
+  const aiEl = appendMessage('ai', '', [], [], true);
+  scrollBottom();
+
+  S.streaming = true;
+  setSendDisabled(true);
+  S.abortController = new AbortController();
+
+  let full = '';
+  let startReceived = false;
+  const textNode = aiEl.querySelector('.msg-text');
+  let postAction = null;
+  let terminal = false;
+
+  try {
+    const resp = await fetch('/api/send', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      signal: S.abortController.signal,
+      body: JSON.stringify({
+        message: msg,
+        attachments: atts.map(a => ({
+          url: a.url,
+          filename: a.filename,
+          mediaType: a.mediaType
+        })),
+        conv_id: S.activeConvId || null,
+        web_search: S.webSearch,
+        auto_attach: isAutoAttach()
+      })
+    });
+
+    if (!resp.ok) {
+      await readError(resp);
+      aiEl.remove();
+      markUserMsgFailed(userEl);
+      restorePrompt(msg);
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream: true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (!raw) continue;
+
+        let d;
+        try { d = JSON.parse(raw); } catch { continue; }
+
+        if (d.type === 'start') {
+          startReceived = true;
+          markUserMsgSuccess(userEl);
+
+        } else if (d.type === 'chunk') {
+          if (!startReceived) {
+            startReceived = true;
+            markUserMsgSuccess(userEl);
+          }
+          full += d.content;
+          renderMarkdown(textNode, full, true);
+          scrollBottom();
+
+        } else if (d.type === 'conv_id') {
+          if (d.conv_id && !S.activeConvId) {
+            S.activeConvId = d.conv_id;
+            setUrlConvId(S.activeConvId);
+            await refreshConversations();
+          }
+
+        } else if (d.type === 'billing' || d.type === 'balance') {
+          if (d.balance !== undefined && d.balance !== null) {
+            S.balance = d.balance;
+            updateSidebar();
+          }
+
+        } else if (d.type === 'done') {
+          full = d.full_response || full;
+          if (d.balance !== undefined && d.balance !== null) {
+            S.balance = d.balance;
+          }
+          renderMarkdown(textNode, full, false);
+          markUserMsgSuccess(userEl);
+          S.msgCount++;
+          S.autoRetries = 0;
+          updateSidebar();
+          await refreshConversations();
+          syncAutoAttachPreview();
+          terminal = true;
+
+        } else if (d.type === 'stream_interrupted') {
+          const userStopped = S.stopping;
+          if (d.balance !== undefined && d.balance !== null) {
+            S.balance = d.balance;
+          }
+          renderMarkdown(textNode, d.full_response || full, false);
+          full = await reconcileWithServer(textNode, d.full_response || full);
+          if (full || startReceived) {
+            markUserMsgSuccess(userEl);
+            S.msgCount++;
+          } else {
+            markUserMsgFailed(userEl);
+          }
+          updateSidebar();
+          await refreshConversations();
+          if (userStopped) {
+            addSystemLog('⏹ Durduruldu — alınan kısım kaydedildi.');
+          } else {
+            postAction = { kind: 'interrupted', pendingMsg: msg, pendingAtts: [...atts], hasContent: !!full };
+          }
+          terminal = true;
+
+        } else if (d.type === 'image_status') {
+          if (!startReceived) {
+            startReceived = true;
+            markUserMsgSuccess(userEl);
+          }
+          const statusEl = document.createElement('div');
+          statusEl.className = 'image-status';
+          statusEl.textContent = d.message;
+          textNode.appendChild(statusEl);
+          scrollBottom();
+
+        } else if (d.type === 'image_result') {
+          if (!startReceived) {
+            startReceived = true;
+            markUserMsgSuccess(userEl);
+          }
+          ensureImages(aiEl, d.urls || []);
+          scrollBottom();
+
+        } else if (d.type === 'error') {
+          if (S.stopping) {
+            terminal = true;
+            break;
+          }
+          const code = String(d.code || '');
+          if (code === 'LOCKED') {
+            if (!full) aiEl.remove();
+            if (!startReceived && !full) markUserMsgFailed(userEl);
+            postAction = { kind: 'locked', pendingMsg: msg, pendingAtts: atts };
+
+          } else if (code === 'RATE_LIMITED' || code === 'INSUFFICIENT_CREDITS') {
+            if (!full) aiEl.remove();
+            else renderMarkdown(textNode, full || '', false);
+            if (!startReceived && !full) markUserMsgFailed(userEl);
+            postAction = { kind: 'credits', pendingMsg: msg, pendingAtts: atts };
+
+          } else if (code.startsWith('WS_CONNECT_FAILED')) {
+            if (!full) aiEl.remove();
+            markUserMsgFailed(userEl);
+            postAction = { kind: 'wsfail', pendingMsg: msg, pendingAtts: atts };
+
+          } else if (code === 'STREAM_CLOSED_EMPTY') {
+            aiEl.remove();
+            markUserMsgFailed(userEl);
+            postAction = { kind: 'empty', pendingMsg: msg, pendingAtts: atts };
+
+          } else {
+            if (!full) {
+              aiEl.remove();
+              markUserMsgFailed(userEl);
+            } else {
+              textNode.innerHTML = `<span style="color:var(--error)">Hata: ${escHtml(code)}</span>`;
+            }
+            restorePrompt(msg);
+          }
+          terminal = true;
+        }
+
+        if (terminal) break;
+      }
+      if (terminal) {
+        try { await reader.cancel(); } catch {}
+        break;
+      }
+    }
+
+    if (!terminal) {
+      full = await reconcileWithServer(textNode, full);
+      await refreshConversations();
+      if (!S.stopping) {
+        if (!startReceived && !full) markUserMsgFailed(userEl);
+        else markUserMsgSuccess(userEl);
+        postAction = { kind: 'interrupted', pendingMsg: msg, pendingAtts: [...atts], hasContent: !!full };
+      }
+    }
+
+  } catch (e) {
+    if (e.name === 'AbortError' || S.stopping) {
+      await loadHistory();
+      await refreshConversations();
+    } else {
+      full = await reconcileWithServer(textNode, full);
+      await refreshConversations();
+      if (full || startReceived) {
+        markUserMsgSuccess(userEl);
+        postAction = { kind: 'interrupted', pendingMsg: msg, pendingAtts: [...atts], hasContent: true };
+      } else {
+        aiEl.remove();
+        markUserMsgFailed(userEl);
+        restorePrompt(msg);
+      }
+    }
+  } finally {
+    S.abortController = null;
+    S.streaming = false;
+    S.stopping = false;
+    setSendDisabled(false);
+    scrollBottom();
+  }
+
+  if (!postAction) return;
+
+  if (postAction.kind === 'interrupted') {
+    if (isAutoMode() && guardAutoRetry()) {
+      await doAutoNewChatBackground('Devam et', postAction.pendingAtts, 'interrupted');
+    } else {
+      if (postAction.hasContent) {
+        addSystemLog('⚠️ Akış kesildi — kaydedilen kısım korundu.');
+        const inp = document.getElementById('msgInput');
+        if (!inp.value.trim()) {
+          inp.value = 'Devam et';
+          autoResize(inp);
+        }
+      } else {
+        addSystemLog('⚠️ Akış iptal edildi.');
+      }
+    }
+
+  } else if (postAction.kind === 'locked') {
+    if (isAutoMode() && guardAutoRetry()) {
+      await doAutoNewChatBackground(postAction.pendingMsg, postAction.pendingAtts, 'locked');
+    } else {
+      addSystemLogWithAction(
+        '⚠️ 423 Locked — Bu konuşma kilitlendi.',
+        'Yeni Sohbet Başlat',
+        async () => { await doNewChatBackground(postAction.pendingMsg, postAction.pendingAtts); }
+      );
+      markUserMsgFailed(userEl);
+      restorePrompt(postAction.pendingMsg);
+    }
+
+  } else if (postAction.kind === 'credits') {
+    if (isAutoMode() && guardAutoRetry()) {
+      addSystemLog('⚠️ 402 Kredi tükendi — Arkaplanda giriş yapılıyor...');
+      markUserMsgFailed(userEl);
+      await doAutoNewAccount(postAction.pendingMsg, postAction.pendingAtts);
+    } else {
+      addSystemLogWithAction(
+        '⚠️ 402 Kredi tükendi.',
+        'Yeniden Giriş Yap',
+        async () => { await doManualNewAccount(postAction.pendingMsg, postAction.pendingAtts); }
+      );
+      markUserMsgFailed(userEl);
+      restorePrompt(postAction.pendingMsg);
+    }
+
+  } else if (postAction.kind === 'wsfail') {
+    if (isAutoMode() && guardAutoRetry()) {
+      addSystemLog('⚠️ Bağlantı kurulamadı (oturum bayatlamış olabilir) — yeniden giriş yapılıyor...');
+      markUserMsgFailed(userEl);
+      await doAutoNewAccount(postAction.pendingMsg, postAction.pendingAtts);
+    } else {
+      addSystemLogWithAction(
+        '⚠️ Sunucuya bağlanılamadı — oturum bayatlamış olabilir.',
+        'Oturumu Yenile',
+        async () => { await doManualNewAccount(postAction.pendingMsg, postAction.pendingAtts); }
+      );
+      markUserMsgFailed(userEl);
+      restorePrompt(postAction.pendingMsg);
+    }
+
+  } else if (postAction.kind === 'empty') {
+    if (isAutoMode() && guardAutoRetry()) {
+      addSystemLog('⚠️ Boş yanıt — mesaj yeniden gönderiliyor...');
+      const inp = document.getElementById('msgInput');
+      inp.value = postAction.pendingMsg;
+      autoResize(inp);
+      S.pendingAtts = postAction.pendingAtts || [];
+      renderAttachPreview();
+      await sendMessage();
+    } else {
+      addSystemLog('⚠️ Yanıt alınamadı (boş akış).');
+      markUserMsgFailed(userEl);
+      restorePrompt(postAction.pendingMsg);
+    }
+  }
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ─── MESSAGES RENDERING ───────────────────────────────────────────────────
+function hideEmpty() {
+  const e = document.getElementById('emptyState');
+  if (e) e.remove();
+}
+
+function appendMessage(role, text, attachments = [], generatedImages = [], streaming = false) {
+  if (typeof generatedImages === 'boolean') {
+    streaming = generatedImages;
+    generatedImages = [];
+  }
+
+  const inner = document.getElementById('messagesInner');
+  const el = document.createElement('div');
+
+  const roleLabel = role === 'user' ? 'Sen' : 'Genspark AI';
+  const roleClass = role === 'user' ? 'user' : 'ai';
+  el.className = `msg ${roleClass}`;
+
+  let attsHtml = '';
+  if (attachments && attachments.length) {
+    attsHtml = `<div class="msg-attachments">${attachments.map(att => {
+      const u = typeof att === 'string' ? att : (att.url || '');
+      const isImg = isImageItem(att);
+      const fullName = getCleanFileName(att);
+      const displayName = truncateFileName(fullName, 20);
+      const displaySrc = getDisplayUrl(att) || u;
+
+      if (isImg) {
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}">
+          <img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false">
+          <div class="att-chip-fallback" style="display:none"></div>
+          <div class="att-chip-name">${escHtml(displayName)}</div>
+        </div>`;
+      } else {
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}">
+          <div class="att-chip-fallback"></div>
+          <div class="att-chip-name">${escHtml(displayName)}</div>
+        </div>`;
+      }
+    }).join('')}</div>`;
+  }
+
+  let genImgsHtml = '';
+  if (generatedImages && generatedImages.length) {
+    genImgsHtml = `<div class="msg-images">${generatedImages.map(img => {
+      const u = typeof img === 'string' ? img : (img.url || '');
+      const fullName = getCleanFileName(img);
+      return `<div class="msg-image-card">
+        <img src="${u}" alt="${escHtml(fullName)}" onclick="window.open('${u}','_blank')" draggable="false">
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="msg-avatar-col">
+      <div class="msg-avatar ${roleClass}"></div>
+    </div>
+    <div class="msg-body">
+      <div class="msg-role ${roleClass}">${roleLabel}</div>
+      <div class="msg-text"></div>
+      ${attsHtml}
+      ${genImgsHtml}
+      <div class="msg-actions">
+        <button class="msg-act-btn" type="button" title="Prompt'a aktar" aria-label="Prompt'a aktar" onclick="useInPrompt(this)">${ICON_TO_PROMPT}</button>
+        <button class="msg-act-btn" type="button" title="Kopyala" aria-label="Mesajı kopyala" onclick="copyMsgText(this)">${ICON_COPY}${ICON_CHECK}</button>
+      </div>
+    </div>
+  `;
+
+  const textEl = el.querySelector('.msg-text');
+  if (text) {
+    if (role === 'user') renderPlainText(textEl, text);
+    else renderMarkdown(textEl, text, streaming);
+  } else if (streaming) {
+    textEl.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  }
+
+  inner.appendChild(el);
+  requestAnimationFrame(updateScrollBottomBtn);
+  return el;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderPlainText(el, text) {
+  el.innerHTML = escapeHtml(text || '').replace(/\n/g, '<br>');
+  applyCollapseIfLong(el);
+}
+
+function renderMarkdown(el, text, streaming = false) {
+  if (!text && streaming) {
+    el.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+    return;
+  }
+  const rendered = marked.parse(text || '');
+  el.innerHTML = rendered + (streaming ? '<span class="stream-cursor"></span>' : '');
+
+  el.querySelectorAll('table').forEach(table => {
+    if (!table.closest('.table-wrap')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    }
+  });
+
+  el.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+    const pre = block.parentElement;
+    if (!pre || (pre.parentElement && pre.parentElement.classList.contains('code-block'))) return;
+
+    const langMatch = (block.className || '').match(/language-([\w+#.-]+)/);
+    const lang = langMatch ? langMatch[1] : 'kod';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'code-block';
+    pre.parentNode.insertBefore(wrap, pre);
+
+    const head = document.createElement('div');
+    head.className = 'code-head';
+    head.setAttribute('data-lang', lang);
+
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.type = 'button';
+    btn.title = 'Kopyala';
+    btn.setAttribute('aria-label', 'Kodu kopyala');
+    btn.innerHTML = ICON_COPY + ICON_CHECK;
+    btn.onclick = () => {
+      navigator.clipboard.writeText(block.textContent).then(() => {
+        btn.classList.add('copied');
+        btn.title = 'Kopyalandı';
+        setTimeout(() => { btn.classList.remove('copied'); btn.title = 'Kopyala'; }, 1500);
+      });
+    };
+
+    head.appendChild(btn);
+    wrap.appendChild(head);
+    wrap.appendChild(pre);
+  });
+
+  if (!streaming) applyCollapseIfLong(el);
+}
+
+// ─── COLLAPSE LONG MESSAGES ───────────────────────────────────────────────
+const COLLAPSE_THRESHOLD = 480;
+
+function isCollapseOn() {
+  const t = document.getElementById('collapseToggle');
+  return t ? t.checked : true;
+}
+
+function saveCollapsePref() {
+  localStorage.setItem('ua-collapse', isCollapseOn() ? '1' : '0');
+  reapplyCollapseAll();
+}
+
+function reapplyCollapseAll() {
+  document.querySelectorAll('#messagesInner .msg-text').forEach(el => applyCollapseIfLong(el));
+}
+
+function applyCollapseIfLong(el) {
+  el.classList.remove('collapsible');
+  el.dataset.collapsed = '0';
+  const existingBtn = el.parentElement && el.parentElement.querySelector('.msg-expand-link');
+  if (existingBtn) existingBtn.remove();
+
+  if (!isCollapseOn()) return;
+
+  requestAnimationFrame(() => {
+    if (!isCollapseOn()) return;
+    const fullHeight = el.scrollHeight;
+    if (fullHeight <= COLLAPSE_THRESHOLD + 40) return;
+
+    el.classList.add('collapsible');
+    el.dataset.collapsed = '1';
+
+    const btn = document.createElement('button');
+    btn.className = 'msg-expand-link';
+    btn.innerHTML = `<span>Daha fazlasını göster</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"/></svg>`;
+    btn.onclick = () => toggleMsgExpand(btn, el);
+    el.insertAdjacentElement('afterend', btn);
+  });
+}
+
+function toggleMsgExpand(btn, el) {
+  const collapsed = el.dataset.collapsed !== '0';
+  if (collapsed) {
+    el.classList.remove('collapsible');
+    el.dataset.collapsed = '0';
+    btn.classList.add('expanded');
+    btn.querySelector('span').textContent = 'Daha az göster';
+  } else {
+    el.classList.add('collapsible');
+    el.dataset.collapsed = '1';
+    btn.classList.remove('expanded');
+    btn.querySelector('span').textContent = 'Daha fazlasını göster';
+    el.scrollIntoView({block: 'nearest'});
+  }
+}
+
+// ─── SCROLL MANAGEMENT ────────────────────────────────────────────────────
+function getMessagesScrollEl() {
+  return document.getElementById('messagesScroll');
+}
+
+function scrollBottom(force = false) {
+  const el = getMessagesScrollEl();
+  if (!el) return;
+  if (!force && !isAutoScroll()) return;
+
+  const doScroll = () => {
+    el.scrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
+  };
+
+  requestAnimationFrame(() => {
+    doScroll();
+    requestAnimationFrame(doScroll);
+    requestAnimationFrame(updateScrollBottomBtn);
+  });
+}
+
+const SCROLL_BOTTOM_SLOP = 80;
+
+function isNearBottom(el) {
+  return (el.scrollHeight - el.scrollTop - el.clientHeight) <= SCROLL_BOTTOM_SLOP;
+}
+
+function updateScrollBottomBtn() {
+  const el = getMessagesScrollEl();
+  const btn = document.getElementById('scrollBottomBtn');
+  if (!el || !btn) return;
+  const scrollable = el.scrollHeight - el.clientHeight > 40;
+  btn.classList.toggle('show', scrollable && !isNearBottom(el));
+}
+
+function initScrollBottomWatcher() {
+  const el = getMessagesScrollEl();
+  if (el) el.addEventListener('scroll', updateScrollBottomBtn, {passive: true});
+  window.addEventListener('resize', updateScrollBottomBtn);
+  updateScrollBottomBtn();
+}
+
+// ─── FILE UPLOAD ──────────────────────────────────────────────────────────
+async function handleFiles(input) {
+  const files = Array.from(input.files);
+  input.value = '';
+  for (const file of files) {
+    const shortName = truncateFileName(file.name, 28);
+    toast(`${shortName} yükleniyor...`, 'info');
+    const fd = new FormData();
+    fd.append('file', file);
+    if (S.activeConvId) fd.append('conv_id', S.activeConvId);
+    try {
+      const r = await fetch('/api/upload', {method: 'POST', body: fd});
+      if (!r.ok) {
+        toast(await readError(r), 'error');
+        continue;
+      }
+      const d = await r.json();
+      if (d.url) {
+        S.pendingAtts.push({
+          url: d.url,
+          filename: d.filename || file.name,
+          mediaType: d.mediaType || d.type || file.type || 'application/octet-stream'
+        });
+        renderAttachPreview();
+        toast(`${shortName} eklendi`, 'success');
+      } else {
+        toast(d.error || 'Yükleme başarısız', 'error');
+      }
+    } catch (e) {
+      toast('Yükleme hatası: ' + e.message, 'error');
+    }
+  }
+}
+
+function renderAttachPreview() {
+  const prev = document.getElementById('attachPreview');
+  const container = document.getElementById('attachPreviewContainer') || prev;
+  const atts = S.pendingAtts;
+  if (!atts.length) {
+    prev.innerHTML = '';
+    container.classList.remove('has-items', 'has-scrollbar');
+    scrollBottom(true);
+    return;
+  }
+
+  prev.innerHTML = atts.map((a, i) => {
+    const isImg = isImageItem(a);
+    const cleanName = getCleanFileName(a);
+    const displayName = truncateFileName(cleanName, 18);
+    const displaySrc = getDisplayUrl(a);
+    const preview = isImg
+      ? `<img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback sm" style="display:none"></div>`
+      : `<div class="att-chip-fallback sm"></div>`;
+    return `<div class="att-chip${a._autoAttached ? ' auto-attached' : ''}" data-idx="${i}" title="${escHtml(cleanName)}${a._autoAttached ? ' (Otomatik Eklendi)' : ''}">
+      ${preview}
+      <div class="att-chip-name">${escHtml(displayName)}</div>
+      <button onclick="removeAtt(${i})" title="Kaldır">×</button>
+    </div>`;
+  }).join('');
+  container.classList.add('has-items');
+
+  const isMobile = window.innerWidth <= 768;
+  const hasScroll = isMobile ? (atts.length > 5) : (atts.length > 9);
+  container.classList.toggle('has-scrollbar', hasScroll);
+
+  scrollBottom(true);
+}
+
+function removeAtt(i) {
+  S.pendingAtts.splice(i, 1);
+  renderAttachPreview();
+}
+
+// ─── PAST FILES & ATTACH MENU ─────────────────────────────────────────────
+function toggleAttachMenu(e) {
+  if (e) e.stopPropagation();
+  if (isAutoAttach()) {
+    closeAllPickers();
+    const fi = document.getElementById('fileInput');
+    if (fi) fi.click();
+    return;
+  }
+  const m = document.getElementById('attachMenu');
+  const isOpen = m && m.classList.contains('open');
+  closeAllPickers();
+  if (m && !isOpen) m.classList.add('open');
+}
+
+function closeAttachMenu() {
+  const m = document.getElementById('attachMenu');
+  if (m) m.classList.remove('open');
+}
+
+function uploadNewFileFromDevice(e) {
+  if (e) e.stopPropagation();
+  closeAttachMenu();
+  const fi = document.getElementById('fileInput');
+  if (fi) fi.click();
+}
+
+async function openPastFilesModal(e) {
+  if (e) e.stopPropagation();
+  closeAttachMenu();
+  showModal('pastFilesModal');
+  const grid = document.getElementById('pastFilesGrid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text3);font-size:13px;">Yükleniyor...</div>';
+
+  try {
+    const r = await fetch('/api/files');
+    const d = await r.json();
+    const files = d.files || [];
+
+    if (!files.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:36px;color:var(--text3);font-size:13.5px;">Henüz geçmişte yüklenmiş dosya veya görsel bulunmuyor.</div>';
+      return;
+    }
+
+    const pendingUrls = new Set(S.pendingAtts.map(a => a.url));
+
+    grid.innerHTML = files.map((file, idx) => {
+      const isSelected = pendingUrls.has(file.url);
+      const isImg = isImageItem(file);
+      const cleanName = getCleanFileName(file);
+      const displayName = truncateFileName(cleanName, 18);
+      file.filename = cleanName;
+
+      const displaySrc = getDisplayUrl(file) || file.url;
+      const preview = isImg
+        ? `<img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback sm" style="display:none"></div>`
+        : `<div class="att-chip-fallback sm"></div>`;
+
+      const fileJson = escHtml(JSON.stringify(file));
+
+      return `
+        <div class="past-file-chip${isSelected ? ' selected' : ''}" id="pfc_${idx}" onclick="toggleSelectPastFile(${idx})" data-file='${fileJson}' title="${escHtml(cleanName)}">
+          <div class="past-file-check-badge">✓</div>
+          <button type="button" class="past-file-link-btn" title="Bağlantıyı Aç (Yeni Sekme)" onclick="event.stopPropagation(); window.open('${displaySrc}','_blank')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </button>
+          ${preview}
+          <div class="att-chip-name">${escHtml(displayName)}</div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (e) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--error);font-size:13px;">Dosyalar alınamadı: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function toggleSelectPastFile(idx) {
+  const el = document.getElementById('pfc_' + idx);
+  if (!el) return;
+  const file = JSON.parse(el.dataset.file);
+  const existingIdx = S.pendingAtts.findIndex(a => a.url === file.url);
+  const isImg = isImageItem(file);
+  const cleanName = getCleanFileName(file);
+
+  if (existingIdx >= 0) {
+    S.pendingAtts.splice(existingIdx, 1);
+    el.classList.remove('selected');
+    renderAttachPreview();
+    toast(`${truncateFileName(cleanName, 16)} kaldırıldı`, 'info');
+  } else {
+    S.pendingAtts.push({
+      url: file.url,
+      filename: cleanName,
+      mediaType: file.mediaType || (isImg ? 'image/jpeg' : 'application/octet-stream')
+    });
+    el.classList.add('selected');
+    renderAttachPreview();
+    toast(`${truncateFileName(cleanName, 16)} eklendi`, 'success');
+  }
+}
+
+// ─── MODEL CHANGE ─────────────────────────────────────────────────────────
+async function changeModel(model) {
+  if (model === S.model) return;
+  try {
+    const r = await fetch('/api/model', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({model})
+    });
+    if (!r.ok) { toast(await readError(r), 'error'); return; }
+    const d = await r.json();
+    if (d.success) {
+      S.model = model;
+      updateSidebar();
+      toast(`Model: ${modelLabel(model)}`, 'success');
+    }
+  } catch (e) {
+    toast('Model değiştirilemedi', 'error');
+  }
+}
+
+// ─── CHAT ACTIONS ─────────────────────────────────────────────────────────
+async function newChatSilent() {
+  stopResumePolling();
+  S.msgCount = 0;
+  S.activeConvIdx = null;
+  S.activeConvId = null;
+  updateSidebar();
+  clearMessages();
+  await refreshConversations();
+}
+
+async function newChat() {
+  stopResumePolling();
+  await fetch('/api/clear', {method: 'POST'});
+  S.msgCount = 0;
+  S.activeConvIdx = null;
+  S.activeConvId = null;
+  setUrlConvId(null);
+  updateSidebar();
+  clearMessages();
+  await refreshConversations();
+  closeSidebar();
+}
+
+function clearMessages() {
+  document.getElementById('messagesInner').innerHTML = EMPTY_STATE_HTML;
+  requestAnimationFrame(updateScrollBottomBtn);
+}
+
+// ─── ACCOUNT RESET & QUICK CREATE ─────────────────────────────────────────
+function showCreditModal() {
+  showModal('creditModal');
+}
+
+async function resetFromCredit() {
+  await doReset(true, 'creditModal', 'creditResetBtn');
+}
+
+async function doReset(carry, modalId, btnId) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = true;
+  btn.textContent = 'Yükleniyor...';
+
+  const statusInterval = setInterval(() => {
+    const msgs = ['Giriş yapılıyor...', 'Mail bekleniyor...', 'Oturum açılıyor...'];
+    const idx = Math.floor(Date.now() / 4000) % msgs.length;
+    btn.textContent = msgs[idx];
+  }, 4000);
+
+  try {
+    const r = await fetch('/api/reset', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        carry_history: carry,
+        conv_id: S.activeConvId || null
+      })
+    });
+
+    clearInterval(statusInterval);
+
+    if (!r.ok) {
+      toast(await readError(r), 'error');
+      return;
+    }
+
+    const d = await r.json();
+
+    if (d.success) {
+      S.email = d.email;
+      if (d.balance !== undefined) S.balance = d.balance;
+      S.model = d.model || S.model;
+      S.accountCreated = true;
+      closeModal(modalId);
+      updateSidebar();
+
+      if (d.new_conv_id) S.activeConvId = d.new_conv_id;
+      await refreshConversations();
+      toast('Hesap değiştirildi', 'success');
+    } else {
+      toast(d.error || 'Sıfırlama başarısız', 'error');
+    }
+  } catch (e) {
+    clearInterval(statusInterval);
+    toast('Bağlantı hatası: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Yeniden Giriş Yap';
+  }
+}
+
+async function quickCreateAccount() {
+  const btn = document.getElementById('createAccountBtn');
+  const originalIcon = btn.innerHTML;
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+
+  try {
+    const r = await fetch('/api/reset', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({carry_history: true, conv_id: S.activeConvId || null})
+    });
+    if (!r.ok) { toast(await readError(r), 'error'); return; }
+    const d = await r.json();
+    if (d.success) {
+      S.email = d.email;
+      if (d.balance !== undefined) S.balance = d.balance;
+      S.model = d.model || S.model;
+      S.accountCreated = true;
+      updateSidebar();
+      await refreshConversations();
+      toast('Giriş yapıldı', 'success');
+    } else {
+      toast(d.error || 'Giriş yapılamadı', 'error');
+    }
+  } catch (e) {
+    toast('Bağlantı hatası', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('spinning');
+    btn.innerHTML = originalIcon;
+  }
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────
+function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+let confirmModalResolver = null;
+function showConfirmModal({
+  title = 'Emin misin?',
+  message = 'Bu işlemi onaylıyor musun?',
+  confirmText = 'Onayla',
+  cancelText = 'Vazgeç',
+  destructive = true
+} = {}) {
+  const modal = document.getElementById('confirmModal');
+  const titleEl = document.getElementById('confirmModalTitle');
+  const textEl = document.getElementById('confirmModalText');
+  const okBtn = document.getElementById('confirmModalOk');
+  const cancelBtn = document.getElementById('confirmModalCancel');
+
+  if (!modal || !titleEl || !textEl || !okBtn || !cancelBtn) {
+    return Promise.resolve(window.confirm(message));
+  }
+
+  titleEl.textContent = title;
+  textEl.textContent = message;
+  okBtn.textContent = confirmText;
+  cancelBtn.textContent = cancelText;
+  okBtn.className = destructive ? 'btn-danger' : 'btn-primary';
+
+  modal.style.display = 'flex';
+
+  return new Promise(resolve => { confirmModalResolver = resolve; });
+}
+
+function closeConfirmModal(confirmed) {
+  const modal = document.getElementById('confirmModal');
+  if (modal) modal.style.display = 'none';
+  if (confirmModalResolver) {
+    const resolve = confirmModalResolver;
+    confirmModalResolver = null;
+    resolve(!!confirmed);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  closeAllPickers();
+  const confirmModal = document.getElementById('confirmModal');
+  if (confirmModal && confirmModal.style.display === 'flex') closeConfirmModal(false);
+  else closeModal('creditModal');
+});
+
+// ─── MOBILE SIDEBAR ───────────────────────────────────────────────────────
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('active');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const icons = {success: '✓', error: '✕', warn: '!', info: 'i'};
+  const kind = icons[type] ? type : 'info';
+
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+
+  const cleanMsg = String(msg).replace(/\s*✓\s*/g, '').replace(/\s*✕\s*/g, '').trim();
+
+  const iconEl = document.createElement('strong');
+  iconEl.textContent = icons[kind];
+  el.appendChild(iconEl);
+
+  const msgEl = document.createElement('span');
+  msgEl.className = 'toast-msg';
+  msgEl.textContent = cleanMsg;
+  el.appendChild(msgEl);
+
+  wrap.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    el.style.transition = 'all .3s';
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
+}
+
+// ─── SEND BUTTON STATES ───────────────────────────────────────────────────
+function setSendDisabled(d) {
+  const attachBtn = document.getElementById('attachBtn');
+  const sendBtn = document.getElementById('sendBtn');
+  const msgInput = document.getElementById('msgInput');
+
+  if (S.stopping) {
+    if (attachBtn) attachBtn.disabled = true;
+    if (msgInput) { msgInput.disabled = true; msgInput.placeholder = 'Durduruluyor...'; }
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.title = 'Durduruluyor...';
+      sendBtn.setAttribute('aria-label', 'Durduruluyor...');
+      sendBtn.innerHTML = ICON_SPIN;
+    }
+  } else if (d) {
+    if (attachBtn) attachBtn.disabled = true;
+    if (msgInput) { msgInput.disabled = false; msgInput.placeholder = 'Bir soru sorun, kod yazdırın veya dosya analiz ettirin...'; }
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.title = 'Durdur';
+      sendBtn.setAttribute('aria-label', 'Durdur');
+      sendBtn.innerHTML = ICON_STOP;
+    }
+  } else {
+    if (attachBtn) attachBtn.disabled = false;
+    if (msgInput) { msgInput.disabled = false; msgInput.placeholder = 'Bir soru sorun, kod yazdırın veya dosya analiz ettirin...'; }
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.title = 'Gönder';
+      sendBtn.setAttribute('aria-label', 'Gönder');
+      sendBtn.innerHTML = ICON_SEND;
+    }
+  }
+}
+
+// ─── TEXTAREA AUTOSIZE ────────────────────────────────────────────────────
+function autoResize(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  const full = el.scrollHeight;
+  const h = Math.min(full, 180);
+  el.style.height = h + 'px';
+  el.style.overflowY = full > 180 ? 'auto' : 'hidden';
+}
+
+window.addEventListener('resize', () => {
+  autoResize(document.getElementById('msgInput'));
+  renderAttachPreview();
+});
+
+// ─── MARKED CONFIG ────────────────────────────────────────────────────────
+marked.setOptions({
+  highlight: (code, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      return hljs.highlight(code, {language: lang}).value;
+    }
+    return hljs.highlightAuto(code).value;
+  },
+  breaks: true,
+  gfm: true,
+});
+
+// ─── THEME MANAGEMENT ─────────────────────────────────────────────────────
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('hljs-light').disabled = dark;
+  document.getElementById('hljs-dark').disabled = !dark;
+  localStorage.setItem('ua-theme', dark ? 'dark' : 'light');
+  const moon = document.getElementById('settingsThemeIconMoon');
+  const sun = document.getElementById('settingsThemeIconSun');
+  const lbl = document.getElementById('settingsThemeLabel');
+  if (moon) moon.style.display = dark ? 'none' : '';
+  if (sun) sun.style.display = dark ? '' : 'none';
+  if (lbl) lbl.textContent = dark ? 'Aydınlık Mod' : 'Karanlık Mod';
+}
+
+function toggleTheme() {
+  applyTheme(document.documentElement.getAttribute('data-theme') !== 'dark');
+}
+
+(function() {
+  const saved = localStorage.getItem('ua-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved ? saved === 'dark' : prefersDark);
+})();
+
+// ─── PREFERENCES ──────────────────────────────────────────────────────────
+function isAutoAttach() {
+  const t = document.getElementById('autoAttachToggle');
+  return t ? t.checked : false;
+}
+function saveAutoAttachPref() {
+  localStorage.setItem('ua-auto-attach', isAutoAttach() ? '1' : '0');
+  postFeature('auto_attach', isAutoAttach());
+  syncAutoAttachPreview();
+  toast(isAutoAttach() ? 'Geçmiş dosyaları otomatik ekleme açık' : 'Geçmiş dosyaları otomatik ekleme kapalı', isAutoAttach() ? 'success' : 'info');
+}
+
+function isAutoMode() {
+  const t = document.getElementById('autoModeToggle');
+  return t ? t.checked : false;
+}
+function saveAutoMode() {
+  localStorage.setItem('ua-auto-mode', isAutoMode() ? '1' : '0');
+}
+
+function isAutoScroll() {
+  const t = document.getElementById('autoScrollToggle');
+  return t ? t.checked : true;
+}
+function saveAutoScroll() {
+  localStorage.setItem('ua-auto-scroll', isAutoScroll() ? '1' : '0');
+}
+
+function isSysLogOn() {
+  const t = document.getElementById('sysLogToggle');
+  return t ? t.checked : true;
+}
+function applySysLogPref() {
+  document.body.classList.toggle('hide-sys-logs', !isSysLogOn());
+}
+function saveSysLogPref() {
+  localStorage.setItem('ua-sys-logs', isSysLogOn() ? '1' : '0');
+  applySysLogPref();
+}
+
+function initPrefs() {
+  const onOff = (key, def = true) => {
+    const v = localStorage.getItem(key);
+    return v === null ? def : v === '1';
+  };
+  const set = (id, val) => { const t = document.getElementById(id); if (t) t.checked = val; };
+
+  set('autoAttachToggle', onOff('ua-auto-attach', false));
+  set('autoModeToggle',   onOff('ua-auto-mode', false));
+  set('autoScrollToggle', onOff('ua-auto-scroll', true));
+  set('sysLogToggle',     onOff('ua-sys-logs', true));
+  set('collapseToggle',   onOff('ua-collapse', true));
+  applySysLogPref();
+
+  const savedSearch = localStorage.getItem('ua-web-search');
+  if (savedSearch !== null) {
+    S.webSearch = savedSearch === '1';
+    updateWebSearchUI();
+  }
+}
+
+// ─── SYSTEM LOG ───────────────────────────────────────────────────────────
+function addSystemLog(text) {
+  hideEmpty();
+  const inner = document.getElementById('messagesInner');
+  const el = document.createElement('div');
+  el.className = 'sys-log';
+  el.textContent = text;
+  inner.appendChild(el);
+  scrollBottom();
+}
+
+function addSystemLogWithAction(text, btnLabel, onClick) {
+  hideEmpty();
+  const inner = document.getElementById('messagesInner');
+  const el = document.createElement('div');
+  el.className = 'sys-log-action';
+  const span = document.createElement('span');
+  span.textContent = text;
+  const btn = document.createElement('button');
+  btn.className = 'sys-btn';
+  btn.textContent = btnLabel;
+  btn.onclick = async () => {
+    btn.disabled = true;
+    btn.textContent = 'İşleniyor...';
+    try {
+      await onClick();
+      btn.className = 'sys-btn done';
+      btn.textContent = '✓ Tamamlandı';
+    } catch {
+      btn.className = 'sys-btn fail';
+      btn.textContent = '✕ Hata oluştu';
+    }
+  };
+  el.appendChild(span);
+  el.appendChild(btn);
+  inner.appendChild(el);
+  scrollBottom();
+}
+
+// ─── USER MESSAGE STATE HELPERS ───────────────────────────────────────────
+function getFailedUserMsgEl() {
+  const msgs = document.querySelectorAll('#messagesInner .msg.user');
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const el = msgs[i];
+    if (el.querySelector('.failed-badge') || el.dataset.failed === '1') {
+      return el;
+    }
+  }
+  return null;
+}
+
+function markUserMsgFailed(el) {
+  const target = el || getFailedUserMsgEl();
+  if (!target) return;
+  target.dataset.failed = '1';
+  const roleEl = target.querySelector('.msg-role.user');
+  if (roleEl) {
+    let badge = roleEl.querySelector('.failed-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      roleEl.prepend(badge);
+    }
+    badge.className = 'failed-badge';
+    badge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> gönderilemedi';
+  }
+}
+
+function markUserMsgRetrying(el) {
+  const target = el || getFailedUserMsgEl();
+  if (!target) return;
+  target.dataset.failed = '1';
+  const roleEl = target.querySelector('.msg-role.user');
+  if (roleEl) {
+    let badge = roleEl.querySelector('.failed-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      roleEl.prepend(badge);
+    }
+    badge.className = 'failed-badge retrying';
+    badge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> tekrar gönderiliyor...';
+  }
+}
+
+function markUserMsgSuccess(el) {
+  const target = el || getFailedUserMsgEl();
+  if (!target) return;
+  delete target.dataset.failed;
+  const roleEl = target.querySelector('.msg-role.user');
+  if (roleEl) {
+    const badge = roleEl.querySelector('.failed-badge');
+    if (badge) badge.remove();
+  }
+}
+
+function updateUserMessage(userEl, text, attachments = []) {
+  userEl.dataset.failed = '1';
+  const textEl = userEl.querySelector('.msg-text');
+  if (textEl) {
+    renderPlainText(textEl, text);
+  }
+
+  const attsContainer = userEl.querySelector('.msg-attachments');
+  if (attsContainer) attsContainer.remove();
+
+  if (attachments && attachments.length) {
+    const body = userEl.querySelector('.msg-body');
+    const actions = userEl.querySelector('.msg-actions');
+    const newAttsEl = document.createElement('div');
+    newAttsEl.className = 'msg-attachments';
+    newAttsEl.innerHTML = attachments.map(att => {
+      const u = typeof att === 'string' ? att : (att.url || '');
+      const isImg = isImageItem(att);
+      const fullName = getCleanFileName(att);
+      const displayName = truncateFileName(fullName, 20);
+      const displaySrc = getDisplayUrl(att) || u;
+      if (isImg) {
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}"><img src="${displaySrc}" alt="${escHtml(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" draggable="false"><div class="att-chip-fallback" style="display:none"></div><div class="att-chip-name">${escHtml(displayName)}</div></div>`;
+      } else {
+        return `<div class="att-chip msg-att" onclick="window.open('${displaySrc}','_blank')" title="${escHtml(fullName)}"><div class="att-chip-fallback"></div><div class="att-chip-name">${escHtml(displayName)}</div></div>`;
+      }
+    }).join('');
+    if (actions && body) {
+      body.insertBefore(newAttsEl, actions);
+    } else if (body) {
+      body.appendChild(newAttsEl);
+    }
+  }
+}
+
+// ─── RESTORE PROMPT & MSG ACTIONS ─────────────────────────────────────────
+function restorePrompt(msg) {
+  const input = document.getElementById('msgInput');
+  if (msg && !input.value.trim()) {
+    input.value = msg;
+    autoResize(input);
+  }
+}
+
+function msgPlainText(btn) {
+  const msg = btn.closest('.msg');
+  const textEl = msg && msg.querySelector('.msg-text');
+  return textEl ? (textEl.innerText || textEl.textContent || '').trim() : '';
+}
+
+function useInPrompt(btn) {
+  const text = msgPlainText(btn);
+  if (!text) return;
+  const input = document.getElementById('msgInput');
+  input.value = text;
+  autoResize(input);
+  input.focus();
+}
+
+function copyMsgText(btn) {
+  const text = msgPlainText(btn);
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.title = 'Kopyalandı';
+    setTimeout(() => { btn.classList.remove('copied'); btn.title = 'Kopyala'; }, 1500);
+  }).catch(() => toast('Kopyalanamadı', 'error'));
+}
+
+// ─── BACKGROUND RECOVERY FLOWS ────────────────────────────────────────────
+async function doNewChatBackground(pendingMsg, pendingAtts) {
+  try {
+    const r = await fetch('/api/new_chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({carry_history: true, conv_id: S.activeConvId || null})
+    });
+    if (!r.ok) throw new Error(await readError(r));
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Hata');
+    S.msgCount = 0;
+    S.activeConvIdx = null;
+    S.activeConvId = d.new_conv_id || null;
+    setUrlConvId(S.activeConvId || null);
+    await refreshConversations();
+    addSystemLog('✓ Yeni konuşma hazır — mesajınızı göndermek için butona basın.');
+    S.pendingAtts = pendingAtts || [];
+    renderAttachPreview();
+    S.streaming = false;
+    setSendDisabled(false);
+    restorePrompt(pendingMsg);
+  } catch (e) {
+    addSystemLog('Yeni konuşma başlatılamadı: ' + e.message);
+    restorePrompt(pendingMsg);
+    throw e;
+  }
+}
+
+async function doAutoNewChatBackground(pendingMsg, pendingAtts, reason = 'locked') {
+  try {
+    toast('Yeni konuşma oluşturuluyor...', 'info');
+
+    const r = await fetch('/api/new_chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({carry_history: true, conv_id: S.activeConvId || null})
+    });
+    if (!r.ok) throw new Error(await readError(r));
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Hata');
+    S.msgCount = 0;
+    S.activeConvIdx = null;
+    S.activeConvId = d.new_conv_id || null;
+    setUrlConvId(S.activeConvId || null);
+    await refreshConversations();
+    await loadHistory();
+
+    if (reason === 'locked') {
+      addSystemLog('⚠️ 423 Locked — Bu konuşma kilitlendi.');
+      markUserMsgFailed();
+    } else {
+      addSystemLog('⚠️ Akış kesildi — bağlantı koptu (alınan kısım kaydedildi).');
+    }
+    addSystemLog('✓ Yeni konuşma açıldı — geçmiş taşındı.');
+    addSystemLog('✓ Mesajınız yeniden gönderiliyor...');
+
+    const input = document.getElementById('msgInput');
+    input.value = pendingMsg;
+    autoResize(input);
+    S.pendingAtts = pendingAtts || [];
+    renderAttachPreview();
+    S.streaming = false;
+    setSendDisabled(false);
+    await sendMessage();
+  } catch (e) {
+    addSystemLog('Yeni konuşma başlatılamadı: ' + e.message);
+    restorePrompt(pendingMsg);
+  }
+}
+
+async function doManualNewAccount(pendingMsg, pendingAtts) {
+  try {
+    addSystemLog('⏳ Giriş yapılıyor...');
+    const r = await fetch('/api/reset', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({carry_history: true, conv_id: S.activeConvId || null})
+    });
+    if (!r.ok) {
+      addSystemLog('Giriş yapılamadı: ' + (await readError(r)));
+      restorePrompt(pendingMsg);
+      return;
+    }
+    const d = await r.json();
+    if (d.success) {
+      S.email = d.email;
+      if (d.balance !== undefined) S.balance = d.balance;
+      S.model = d.model || S.model;
+      S.accountCreated = true;
+      if (d.new_conv_id) S.activeConvId = d.new_conv_id;
+      updateSidebar();
+      await refreshConversations();
+      addSystemLog(`✓ Giriş yapıldı: ${d.email} — mesajınızı göndermek için butona basın.`);
+      S.pendingAtts = pendingAtts || [];
+      renderAttachPreview();
+      S.streaming = false;
+      setSendDisabled(false);
+      restorePrompt(pendingMsg);
+    } else {
+      addSystemLog('Giriş yapılamadı: ' + (d.error || 'bilinmeyen hata'));
+      restorePrompt(pendingMsg);
+    }
+  } catch (e) {
+    addSystemLog('Hesap değişimi başarısız: ' + e.message);
+    restorePrompt(pendingMsg);
+  }
+}
+
+async function doAutoNewAccount(pendingMsg, pendingAtts) {
+  try {
+    addSystemLog('⏳ Giriş yapılıyor...');
+    const r = await fetch('/api/reset', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({carry_history: true, conv_id: S.activeConvId || null})
+    });
+    if (!r.ok) {
+      addSystemLog('Giriş yapılamadı: ' + (await readError(r)));
+      restorePrompt(pendingMsg);
+      return;
+    }
+    const d = await r.json();
+    if (d.success) {
+      S.email = d.email;
+      if (d.balance !== undefined) S.balance = d.balance;
+      S.model = d.model || S.model;
+      S.accountCreated = true;
+      if (d.new_conv_id) S.activeConvId = d.new_conv_id;
+      updateSidebar();
+      await refreshConversations();
+      addSystemLog(`✓ Giriş yapıldı: ${d.email} — mesajınız yeniden gönderiliyor...`);
+      const input = document.getElementById('msgInput');
+      input.value = pendingMsg;
+      autoResize(input);
+      S.pendingAtts = [...(pendingAtts || [])];
+      renderAttachPreview();
+      scrollBottom(true);
+      await new Promise(r => setTimeout(r, 450));
+      S.streaming = false;
+      setSendDisabled(false);
+      await sendMessage();
+    } else {
+      addSystemLog('Giriş yapılamadı: ' + (d.error || 'bilinmeyen hata'));
+      restorePrompt(pendingMsg);
+    }
+  } catch (e) {
+    addSystemLog('Otomatik hesap değişimi başarısız: ' + e.message);
+    restorePrompt(pendingMsg);
+  }
+}
+
+// ─── SETTINGS & DOWNLOAD MENUS ────────────────────────────────────────────
+function toggleSettingsPopup(e) {
+  e.stopPropagation();
+  const popup = document.getElementById('settingsPopup');
+  const dm = document.getElementById('downloadMenu');
+  if (dm) dm.classList.remove('open');
+  popup.classList.toggle('open');
+}
+
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('settingsPopup');
+  const settingsBtn = document.getElementById('settingsBtn');
+  if (popup && !popup.contains(e.target) && e.target !== settingsBtn && !settingsBtn?.contains(e.target)) {
+    popup.classList.remove('open');
+  }
+  const dm = document.getElementById('downloadMenu');
+  const dlBtn = document.getElementById('downloadBtn');
+  if (dm && !dm.contains(e.target) && e.target !== dlBtn && !dlBtn?.contains(e.target)) {
+    dm.classList.remove('open');
+  }
+});
+
+function toggleDownloadMenu(e) {
+  e.stopPropagation();
+  const dm = document.getElementById('downloadMenu');
+  const popup = document.getElementById('settingsPopup');
+  if (popup) popup.classList.remove('open');
+  dm.classList.toggle('open');
+}
+
+function getHistoryData() {
+  const msgs = document.querySelectorAll('#messagesInner .msg');
+  const result = [];
+  msgs.forEach(el => {
+    const roleEl = el.querySelector('.msg-role');
+    const textEl = el.querySelector('.msg-text');
+    if (!roleEl || !textEl) return;
+    const isUser = roleEl.classList.contains('user');
+    const text = (textEl.innerText || textEl.textContent || '').trim();
+    const images = Array.from(el.querySelectorAll('.msg-images img, .msg-attachments img')).map(i => i.src);
+    result.push({ role: isUser ? 'user' : 'assistant', text, images });
+  });
+  return result;
+}
+
+function downloadChat(format) {
+  document.getElementById('downloadMenu').classList.remove('open');
+  const history = getHistoryData();
+  if (!history.length) { toast('İndirilecek mesaj yok', 'warn'); return; }
+
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+  const filename = `genspark_${dateStr}`;
+
+  if (format === 'json') {
+    triggerDownload(filename + '.json', JSON.stringify(history, null, 2), 'application/json');
+
+  } else if (format === 'txt') {
+    let txt = '';
+    history.forEach((m, i) => {
+      txt += (m.role === 'user' ? 'Sen' : 'Genspark AI') + ':\n' + m.text;
+      if (m.images && m.images.length) txt += '\n[' + m.images.length + ' görsel eklendi]';
+      if (i < history.length - 1) txt += '\n\n---\n\n';
+    });
+    triggerDownload(filename + '.txt', txt, 'text/plain;charset=utf-8');
+
+  } else if (format === 'html') {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    const T = isDark ? {
+      bg: '#07080d', surface: '#111420', surface2: '#171b2b',
+      border: 'rgba(255,255,255,.08)', border2: 'rgba(255,255,255,.14)', codeBg: '#0b0d15', codeHead: '#131726',
+      accent: '#6366f1', accentLight: '#a5b4fc', accent2: '#a855f7',
+      accentDim: 'rgba(99,102,241,.14)', accentGlow: 'rgba(99,102,241,.32)',
+      text: '#f1f5f9', text2: '#94a3b8', text3: '#64748b',
+      userBg: '#1e223d', userText: '#f8fafc', userBorder: 'rgba(129,140,248,.25)',
+      error: '#f87171', sh1: '0 2px 6px rgba(0,0,0,.4)'
+    } : {
+      bg: '#f6f7fb', surface: '#ffffff', surface2: '#f2f4fa',
+      border: 'rgba(15,23,42,.08)', border2: 'rgba(15,23,42,.14)', codeBg: '#f8f9fc', codeHead: '#eef1f8',
+      accent: '#4f46e5', accentLight: '#4f46e5', accent2: '#9333ea',
+      accentDim: 'rgba(79,70,229,.08)', accentGlow: 'rgba(79,70,229,.22)',
+      text: '#0f172a', text2: '#475569', text3: '#94a3b8',
+      userBg: '#4f46e5', userText: '#ffffff', userBorder: 'rgba(79,70,229,.25)',
+      error: '#ef4444', sh1: '0 1px 3px rgba(15,23,42,.06)'
+    };
+
+    const hljsTheme = isDark
+      ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css'
+      : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+
+    const clone = document.getElementById('messagesInner').cloneNode(true);
+    clone.removeAttribute('id');
+    clone.querySelectorAll('.copy-btn, .msg-actions, .msg-expand-link').forEach(n => n.remove());
+    clone.querySelectorAll('.stream-cursor').forEach(n => n.remove());
+    clone.querySelectorAll('.msg-text.collapsible').forEach(n => n.classList.remove('collapsible'));
+    clone.querySelectorAll('.typing-indicator').forEach(n => {
+      n.outerHTML = '<span style="color:' + T.text3 + '">Yazıyor...</span>';
+    });
+    clone.querySelectorAll('[onclick]').forEach(n => n.removeAttribute('onclick'));
+
+    const html = `<!DOCTYPE html>
+<html lang="tr" data-theme="${isDark ? 'dark' : 'light'}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genspark AI — Sohbet ${dateStr}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="${hljsTheme}">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --display:'Plus Jakarta Sans','Inter',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --bg:${T.bg}; --surface:${T.surface}; --surface2:${T.surface2};
+  --border:${T.border}; --border-2:${T.border2}; --code-bg:${T.codeBg}; --code-head:${T.codeHead};
+  --accent:${T.accent}; --accent-light:${T.accentLight}; --accent-2:${T.accent2};
+  --accent-dim:${T.accentDim}; --accent-glow:${T.accentGlow};
+  --text:${T.text}; --text2:${T.text2}; --text3:${T.text3};
+  --user-bg:${T.userBg}; --user-text:${T.userText}; --user-border:${T.userBorder}; --error:${T.error};
+  --r1:10px; --r2:14px; --r3:18px; --pill:999px; --sh1:${T.sh1};
+  --ic-spark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 1.8c.52 5.42 4.26 9.16 9.68 9.68v1.04c-5.42.52-9.16 4.26-9.68 9.68h-1.04c-.52-5.42-4.26-9.16-9.68-9.68v-1.04c5.42-.52 9.16-4.26 9.68-9.68z'/%3E%3C/svg%3E");
+  --ic-user:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20.5c0-3.3-3.6-5.5-8-5.5s-8 2.2-8 5.5'/%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3C/svg%3E");
+  --ic-file:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 2.5H7A2.5 2.5 0 0 0 4.5 5v14A2.5 2.5 0 0 0 7 21.5h10a2.5 2.5 0 0 0 2.5-2.5V7.5z'/%3E%3Cpath d='M14.5 2.5v5h5'/%3E%3C/svg%3E");
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text)}
+body{font-family:var(--font);font-size:14.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.export-shell{max-width:810px;margin:0 auto;padding:36px 24px 68px}
+.export-head{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.export-mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 6px 18px var(--accent-glow)}
+.export-mark::after{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--ic-spark) center/contain no-repeat;mask:var(--ic-spark) center/contain no-repeat}
+.export-head h1{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.025em}
+.export-head p{font-size:12.5px;color:var(--text2);margin-top:2px}
+.msg{display:flex;gap:15px;padding:6px 0 24px;min-width:0}
+.msg-avatar-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:34px}
+.msg-avatar{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;margin-top:2px;font-size:0}
+.msg-avatar::after{content:"";width:17px;height:17px;background:currentColor}
+.msg-avatar.ai{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+.msg-avatar.ai::after{-webkit-mask:var(--ic-spark) center/contain no-repeat;mask:var(--ic-spark) center/contain no-repeat}
+.msg-avatar.user{color:var(--text2);background:var(--surface);border:1px solid var(--border-2)}
+.msg-avatar.user::after{-webkit-mask:var(--ic-user) center/contain no-repeat;mask:var(--ic-user) center/contain no-repeat}
+.msg-body{flex:1;min-width:0;padding-top:2px;max-width:92%}
+.msg-role{font-family:var(--display);font-size:11.5px;font-weight:700;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:8px;width:100%}
+.msg-role.ai{color:var(--text)}
+.msg.user{justify-content:flex-end}
+.msg.user .msg-avatar-col{order:2}
+.msg.user .msg-body{order:1;flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-end;max-width:82%}
+.msg.user .msg-role{justify-content:flex-end}
+.msg.user .msg-text{text-align:left;max-width:100%;background:var(--user-bg);color:var(--user-text);border:1px solid var(--user-border);padding:12px 17px;border-radius:20px 20px 6px 20px}
+.msg-text{color:var(--text);line-height:1.75;word-wrap:break-word;overflow-wrap:break-word;min-width:0}
+.msg-text>*:first-child{margin-top:0}
+.msg-text>*:last-child{margin-bottom:0}
+.msg-text p{margin-bottom:14px}
+.msg-text h1,.msg-text h2,.msg-text h3{font-family:var(--display);margin:22px 0 10px;font-weight:700}
+.msg-text code{background:var(--accent-dim);border:1px solid var(--user-border);padding:2px 6px;border-radius:6px;font-size:.86em;font-family:var(--mono);color:var(--accent-light)}
+.code-block{margin:16px 0;border-radius:var(--r3);overflow:hidden;border:1px solid var(--border-2);background:var(--code-bg)}
+.code-head{display:flex;align-items:center;padding:8px 14px;background:var(--code-head);border-bottom:1px solid var(--border);min-height:36px}
+.code-head::before{content:attr(data-lang);font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text2)}
+.msg-text pre{margin:0;background:transparent !important}
+.msg-text pre code{background:none !important;border:none !important;color:inherit;padding:16px 18px !important;font-size:13px;font-family:var(--mono);display:block;overflow-x:auto;line-height:1.7;white-space:pre}
+.table-wrap{overflow-x:auto;max-width:100%;margin:16px 0;border-radius:var(--r2);border:1px solid var(--border);background:var(--surface)}
+.msg-text table{border-collapse:separate;border-spacing:0;font-size:13.5px;min-width:100%}
+.msg-text table th,.msg-text table td{padding:10px 15px;text-align:left;border-bottom:1px solid var(--border)}
+.msg-attachments,.msg-images{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.msg-images img{max-width:280px;border-radius:var(--r2);border:1px solid var(--border)}
+.empty-state,.scroll-bottom-btn{display:none}
+</style>
+</head>
+<body>
+  <div class="export-shell">
+    <div class="export-head">
+      <div class="export-mark"></div>
+      <div>
+        <h1>Genspark AI</h1>
+        <p>Sohbet dışa aktarıldı — ${now.toLocaleString('tr-TR')}</p>
+      </div>
+    </div>
+    ${clone.outerHTML}
+  </div>
+</body>
+</html>`;
+    triggerDownload(filename + '.html', html, 'text/html;charset=utf-8');
+  }
+}
+
+function triggerDownload(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  toast('İndirme başlatıldı', 'success');
+}
+
+// ─── FEATURE TOGGLES ──────────────────────────────────────────────────────
+function postFeature(feature, value) {
+  fetch('/api/toggle_feature', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({feature, value})
+  }).catch(() => {});
+}
+
+function toggleWebSearch() {
+  S.webSearch = !S.webSearch;
+  localStorage.setItem('ua-web-search', S.webSearch ? '1' : '0');
+  updateWebSearchUI();
+  postFeature('web_search', S.webSearch);
+  toast(S.webSearch ? 'Web araması açık' : 'Web araması kapalı', S.webSearch ? 'success' : 'info');
+}
+
+function updateWebSearchUI() {
+  const btn = document.getElementById('webSearchBtn');
+  if (btn) btn.classList.toggle('on', S.webSearch);
+}
+
+// ─── TAB VISIBILITY SYNC ──────────────────────────────────────────────────
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  if (S.streaming || resumeTimer) return;
+  if (document.getElementById('app').style.display === 'none') return;
+  const data = await fetchServerHistory();
+  if (data && data.streaming) await loadHistory();
+  await refreshConversations();
+});
+
+// ─── BOOTSTRAP ────────────────────────────────────────────────────────────
+initPrefs();
+boot();
+initScrollBottomWatcher();
+</script>
+</body>
+</html>
